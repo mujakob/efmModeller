@@ -1,32 +1,77 @@
 <template>
     <v-app-bar app>
-        <error-message v-for="(e, index) in errors" :key="index" :error="e"/>
-        <v-app-bar-title> My App Title </v-app-bar-title>
+        <!-- <error-message v-for="(e, index) in errors" :key="index" :error="e" /> -->
+        
+        <v-app-bar-title class="mx-5"> My App Title </v-app-bar-title>
+
+        <v-btn :to="{name: 'Home'}">
+            Home
+        </v-btn>
+
+        <v-btn v-if="loggedIn" :to="{name: 'page2'}">
+            page2
+        </v-btn>
     
         <!-- User menug and login -->
-        <v-avatar
-            color="primary"
-            size="56"
-        >
-                    
-            <v-img v-if="user.image" :src="userImg" />
+        <span class="ml-auto">
+            <v-menu offset-y v-if="loggedIn">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-avatar
+                        color="primary"
+                        size="56"
+                        v-bind="attrs"
+                        v-on="on"
+                    >
+                        <v-img v-if="getUser.image" :src="required(userImg)" />
+                        <v-icon v-else>
+                        mdi-account-circle
+                        </v-icon>
+                    </v-avatar>
+                </template>
 
-            <v-icon v-else>
-              mdi-account-circle
-            </v-icon>
+                <v-list
+                    dense
+                    nav
+                    >
+                    <v-list-item :to="{name: 'userAbout'}">
+                        <v-list-item-icon>
+                            <v-icon>mdi-account-circle</v-icon>
+                        </v-list-item-icon>
 
-        </v-avatar>
+                        {{getUser.username}}
+
+                    </v-list-item>
+                    <v-list-item :to="{name: 'userProjects'}">
+                        My projects
+                    </v-list-item>
+                    <v-list-item :to="{name: 'coreSettings'}">
+                        Settings
+                    </v-list-item>
+                    <v-list-item>
+                        <v-btn @click="logUserOut">
+                            logout
+                        </v-btn>
+                    </v-list-item>
+                </v-list>
+
+            </v-menu>
+
+            <v-btn v-else :to="{name: 'login'}">
+                login
+            </v-btn>
+        </span>
+
+
     </v-app-bar>
 </template>
 
 <script>
-import utils from '@utils'
-import settings from '@settings'
-import ErrorMessage from '../errorMessage.vue'
+// import utils from '@utils'
+import settings from '@/settings'
+import { mapGetters } from 'vuex';
 
 export default {
     components: {
-        ErrorMessage
     },
     data() {
         return {
@@ -35,22 +80,29 @@ export default {
         }
     },
     methods: {
-        getUser() {
-            try {
-                this.user utils.getCurrentUser()
-            } catch (e) {
-                this.errors.push(e)
-            }
-    }
+        logUserOut() {
+            this.$store.commit('logout')
+        }
+        // getUser() {
+        //     try {
+        //         this.user utils.getCurrentUser()
+        //     } catch (e) {
+        //         this.errors.push(e)
+        //     }
+        // }
     },
     computed: {
-        loggedIn: function() {
-            return utils.userLoggedIn()
-        },
+        ...mapGetters([
+            'getUser',
+            'loggedIn'
+        ]),
+        // loggedIn: function() {
+        //     return utils.userLoggedIn()
+        // },
 
         userImg: function() {
-            if (user.image) {
-                return settings.imageHost + user.image
+            if (this.getUser.image) {
+                return settings.imageHost + this.getUser.image
             } else {
                 return null
             }

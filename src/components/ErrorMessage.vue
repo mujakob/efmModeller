@@ -3,9 +3,11 @@
         prominent
         type="error"
         dismissible
+        @input="deleteError"
       >
         <h2> Sorry, an error has occured: </h2>
-        <p> {{error}} </p>
+        <h5 v-if="msg.component"> registered by {{msg.component}} </h5>
+        <p> {{msg.msg}} </p>
     </v-alert>
 </template>
 
@@ -17,8 +19,21 @@ export default {
         }
     },
     props: {
-        error: {
+        msg: {
             required: true,
+        },
+        index: {
+            default: false,
+        }
+    },
+    methods: {
+        deleteError(v) {
+            console.log(v)
+            console.log('deleting error ' + String(this.index))
+            this.$store.commit({
+                type: 'removeError',
+                index: this.index
+            })
         }
     }
 }

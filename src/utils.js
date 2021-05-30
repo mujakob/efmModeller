@@ -1,6 +1,7 @@
 import Settings from '@/settings'
 import { logout, isLoggedIn } from '@/router'
 import settings from './settings';
+import store from '@/store'
 
 
 async function apiCall(url, method = "GET", objectData = null) {
@@ -70,8 +71,9 @@ export default {
     },
 
     async getCurrentUser() {
+
         return apiCall(settings.coreAPI + 'users/me')
-    }
+    },
 
     async loginToBackend(username, password) {
         // const formdata = new FormData()
@@ -79,7 +81,9 @@ export default {
         // formdata.append('password', password)
         // console.log(user)
         // const { username, password } = this
-    
+        
+        console.log(store.mutations.auth_request())
+
         let user = { username: username, password: password };
     
         var formBody = [];
@@ -111,20 +115,29 @@ export default {
             localStorage.setItem("access_token", token["access_token"]);
             localStorage.setItem("token_type", token["token_type"]);
             localStorage.setItem("loginTime", Date.now());
+
+            user = this.getCurrentUser()
+
+            store.mutations.auth_success(token, user)
+
             return "logged in";
           } else if (status === 401) {
+            store.mutations.auth_error()
             throw "Could not log in; wrong username or password";
           } else {
             console.error(status, data);
+            store.mutations.auth_error()
             throw "error " + status + " please try again later";
           }
         } catch (error) {
           console.error(error);
+          this.$store.mutations.auth_error()
           throw "server error; please try again later";
         }
       },
     
     logout() {
+        this.$store.mutations.logout()
         logout()
     }
 }
