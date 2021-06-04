@@ -10,14 +10,14 @@ version 0.1
 ## adaptions before use:
 The backend is linked in src/settings.js
 Please adapt to the respective local or online version you are using:
-'''
+```
     efmAPI: "http://localhost:8000/api/efm/",
     coreAPI: "http://localhost:8000/api/core/",
-'''
+```
 Furthermore, if you make use of images, set the respective imageHost in the same file (currently used for potential user avatar images):
-'''
+```
     imageHost: "@/assets/img/",
-'''
+```
 
 ## Use
 The template uses vuex for user and error management, which can easily be used in your application.
@@ -25,32 +25,32 @@ The template uses vuex for user and error management, which can easily be used i
 ### User and authentication
 The vuex store contains functions to retrieve user and authentication information.
 To get the current user object (as provided by the backend):
-'''
+```
 this.$store.getters.getUser
-'''
+```
 or
-'''
+```
 computed: {
     ...mapGetters([
         'getUser',
     ])
 }
-'''
+```
 and using getUser as a variable, e.g.
-'''
+```
 {{getUser.username}}
-'''
+```
 
 Whether the user is logged in or not can be checked via the vuex getter
-'''
+```
 this.$store.getters.loggedIn //true or false
-'''
+```
 
 ### API calls
 The vuex file contains a function 
-'''
+```
 apiCall(url, method = "GET", objectData = null)
-'''
+```
 which should suffice for most calls for the backend
 
 
@@ -58,7 +58,7 @@ which should suffice for most calls for the backend
 Errors are collected in the vuex store and shown through the ErrorMessage.vue component in the main App.vue file.
 
 To set an error which is to be displayed through this mechanism use
-'''
+```
 this.$store.commit(
     'registerError',
     {
@@ -66,15 +66,15 @@ this.$store.commit(
         component: ' optional - the component which registered the error'
     }
 )
-'''
+```
 
 Errors can be removed from the error array via their display, or all errors can be cleared via 
-'''
+```
 this.$store.commit(
     'clearErrors',
     'componentName(optional)'
 )
-'''
+```
 either component dependent or all of them.
 
 ## Project setup using NPM
