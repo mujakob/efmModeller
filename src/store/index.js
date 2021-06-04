@@ -4,6 +4,66 @@ import Settings from '@/settings'
 
 Vue.use(Vuex)
 
+async function apiCall(url, method = "GET", objectData = null) {
+  // treeData:
+  // { name: 'string', description: 'string}
+  try {
+    let messageData = {};
+    if (method != "GET") {
+      messageData = Object.assign(messageData, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          Authorization:
+            localStorage.token_type + " " + localStorage.access_token
+        }
+      });
+    } else if(isLoggedIn()) {
+      messageData = Object.assign(messageData, {
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          Authorization:
+            localStorage.token_type + " " + localStorage.access_token
+        }
+      });
+    }
+    if (objectData && method != "GET") {
+      messageData = Object.assign(messageData, {
+        body: JSON.stringify(objectData)
+      });
+    }
+
+    // console.log(messageData);
+
+    const response = await fetch(Settings.backend + url, messageData);
+
+
+    //const data = await response.json()
+    if (response.status === 200) {
+      //console.log(response.json())
+      let returnValue = response.json()
+      // console.log(returnValue)
+      return returnValue
+
+    } else if (response.status === 401) {
+      logout()
+      throw "You are not logged in or don't have permission for this function";
+    } else {
+      throw "Error " +
+        response.status +
+        ' Could not perform API call for: url="' +
+        url +
+        '", method="' +
+        method +
+        '", data="' +
+        JSON.stringify(objectData) +
+        '".';
+    }
+  } catch (error) {
+    console.error(error);
+    throw "Could not perform API call: " + error;
+  }
+}
 
 const menuStore = {
   namespaced: true,
@@ -104,7 +164,6 @@ export default new Vuex.Store({
           formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
-        // console.log(formBody)
         
         try {
           // commit to backend:
