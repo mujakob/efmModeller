@@ -4,12 +4,12 @@
       <h1>Login</h1>
       <!-- <error-message v-if="message" :error="message" />
       <error-message v-if="error" :error="error" /> -->
-      <v-text-field 
-        v-model="username" 
-        width="200" 
-        outlined 
+      <v-text-field
+        v-model="username"
+        width="200"
+        outlined
         label="Name"
-        @keyup.enter="login" 
+        @keyup.enter="login"
       />
 
       <v-text-field
@@ -25,7 +25,6 @@
 
       <v-btn @click="login">Login </v-btn>
     </v-form>
-
   </v-container>
 </template>
 
@@ -35,8 +34,8 @@
 // import errorMessage from "@/components/ErrorMessage.vue";
 
 export default {
-  name: 'login',
-  components: {  },
+  name: "login",
+  components: {},
   data() {
     return {
       password: null,
@@ -47,34 +46,33 @@ export default {
     };
   },
   props: ["message"],
-  computed: {
-  },
+  computed: {},
   methods: {
     async login() {
-      this.$store.commit('clearErrors', this.$options.name)
+      this.$store.commit("clearErrors", this.$options.name);
       // let response = await utils.loginToBackend(this.username, this.password);
-      if (!this.username ) {
-        this.$store.commit('registerError', {
-          message: 'Please enter a username first',
-          component: this.$options.name
-        })
-        return false
+      if (!this.username) {
+        this.$store.commit("registerError", {
+          message: "Please enter a username first",
+          component: this.$options.name,
+        });
+        return false;
       }
-      
+
       if (!this.password) {
-        this.$store.commit('registerError', {
-          message: 'Please enter a password first',
-          component: this.$options.name
-        })
-        return false
+        this.$store.commit("registerError", {
+          message: "Please enter a password first",
+          component: this.$options.name,
+        });
+        return false;
       }
 
       let user = {
         username: this.username,
-        password: this.password
-      }
-      await this.$store.dispatch('login', user)
-    }
+        password: this.password,
+      };
+      await this.$store.dispatch("login", user);
+    },
   },
 };
 </script>

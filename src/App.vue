@@ -3,7 +3,12 @@
     <nav-bar />
 
     <v-main>
-      <error-message v-for="(e, index) in getAllErrors" :key="index" :msg="e" :index="index" />
+      <error-message
+        v-for="(e, index) in getAllErrors"
+        :key="index"
+        :msg="e"
+        :index="index"
+      />
 
       <router-view />
     </v-main>
@@ -11,22 +16,20 @@
 </template>
 
 <script>
-import NavBar from '@/components/core/NavBar.vue'
-import ErrorMessage from '@/components/ErrorMessage.vue'
-import { mapGetters } from 'vuex';
+import NavBar from "@/components/core/NavBar.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import { mapGetters } from "vuex";
 
 export default {
-  name: 'app',
+  name: "app",
   components: {
     NavBar,
     ErrorMessage,
   },
   computed: {
-      ...mapGetters([
-        'getAllErrors',
-      ])
-  }
-}
+    ...mapGetters(["getAllErrors"]),
+  },
+};
 </script>
 
 <style>

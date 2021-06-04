@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
-import store from '../store'
+import store from "../store";
 
 Vue.use(VueRouter);
 
@@ -39,7 +39,6 @@ Vue.use(VueRouter);
 
 // export { logout };
 
-
 const routes = [
   {
     path: "/",
@@ -64,7 +63,9 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     meta: { requiresAuth: true },
     component: () =>
-      import(/* webpackChunkName: "coreSettings" */ "../views/core/Settings.vue"),
+      import(
+        /* webpackChunkName: "coreSettings" */ "../views/core/Settings.vue"
+      ),
   },
   {
     path: "/projects",
@@ -74,20 +75,23 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     meta: { requiresAuth: true },
     component: () =>
-      import(/* webpackChunkName: "coreSettings" */ "../views/core/Projects.vue"),
+      import(
+        /* webpackChunkName: "coreSettings" */ "../views/core/Projects.vue"
+      ),
   },
   {
     path: "/login",
     name: "login",
-    component: () => import(/*webpackChunkName: "login" */ "../components/core/login")
+    component: () =>
+      import(/*webpackChunkName: "login" */ "../components/core/login"),
   },
   {
-    path: '/404',
-    alias: '*',
-    name: 'notFound',
-    component: () => 
-      import(/* webpackChunkName: "notFound" */ "../components/NotFound")
-  }
+    path: "/404",
+    alias: "*",
+    name: "notFound",
+    component: () =>
+      import(/* webpackChunkName: "notFound" */ "../components/NotFound"),
+  },
 ];
 
 const router = new VueRouter({
@@ -98,13 +102,13 @@ const router = new VueRouter({
 
 // navigation guards (needed for login:)
 router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     console.log("need for Logged In");
-    console.log('log in status' + store.getters.loggedIn)
+    console.log("log in status" + store.getters.loggedIn);
     // need to login!
     if (!store.getters.loggedIn) {
       next({
-        name: "login"
+        name: "login",
       });
     } else {
       next();

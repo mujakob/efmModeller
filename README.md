@@ -3,9 +3,8 @@ Developed to work with SEDbackend [https://github.com/sed-group/sed-backend](htt
 
 Aims to provide a starting point for frontend development inside the SED team
 
-version 0.1
+version 0.11
 
---- requires cleanup ---
 
 ## adaptions before use:
 The backend is linked in src/settings.js
@@ -49,9 +48,17 @@ this.$store.getters.loggedIn //true or false
 ### API calls
 The vuex file contains a function 
 ```
-apiCall(url, method = "GET", objectData = null)
+store.dispatch({
+  type: 'apiCall',      
+  url: 'your/API/call', //Settings.backend + 'url' is used inside the function!
+  method: 'POST',       //default 'GET'
+  objectData: {         //only for POST and PUT
+      data: '...'
+  }               
+})
 ```
-which should suffice for most calls for the backend
+which should suffice for most calls for the backend (as set in settings.js).
+It is set to automatically use the authentication set by the login process.
 
 
 ### Errormanagement
