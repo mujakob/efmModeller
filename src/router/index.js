@@ -80,6 +80,19 @@ const routes = [
       ),
   },
   {
+    path: "/project/:treeID",
+    name: "project",
+    props: true,
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    meta: { requiresAuth: true },
+    component: () =>
+      import(
+        /* webpackChunkName: "coreSettings" */ "../views/efm/efmWorkspace.vue"
+      ),
+  },
+  {
     path: "/login",
     name: "login",
     component: () =>

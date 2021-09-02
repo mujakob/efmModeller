@@ -1,15 +1,15 @@
 <template>
-  <hello-world />
+  <efm-projects/>
 </template>
 
 <script>
-import HelloWorld from "../components/HelloWorld";
+import efmProjects from "../views/efm/efmProjects";
 
 export default {
   name: "Home",
 
   components: {
-    HelloWorld,
+    efmProjects,
   },
 };
 </script>

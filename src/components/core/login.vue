@@ -45,7 +45,9 @@ export default {
       success: false,
     };
   },
-  props: ["message"],
+  props: {
+    forwardURL: { type: String, default: "" }, 
+  },
   computed: {},
   methods: {
     async login() {
@@ -71,7 +73,13 @@ export default {
         username: this.username,
         password: this.password,
       };
-      await this.$store.dispatch("login", user);
+      const success = await this.$store.dispatch("login", user);
+      if (success & this.forwardURL) {
+        console.log('forwarding to: ' + this.forwardURL)
+        this.$router.push(this.forwardURL)
+      } else (
+        this.$router.push({name: 'Home'})
+      )
     },
   },
 };
@@ -83,8 +91,5 @@ export default {
   flex-direction: column;
   max-width: 400px;
   margin: 70px 0;
-}
-.col {
-  border: 2px solid green !important;
 }
 </style>

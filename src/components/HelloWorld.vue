@@ -2,9 +2,9 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <h1 class="display-2 font-weight-bold mb-3">
+        <p class="text-h1">
           Welcome to the SED lab frontend boilerplate!
-        </h1>
+        </p>
 
         <h2>version {{ version }}</h2>
 
@@ -15,8 +15,57 @@
       </v-col>
     </v-row>
 
+
+    <!-- APPS -->
+    <v-container v-if="allApps.length">
+      <p class="text-h2">Installed apps & projects </p>
+      <v-row>
+        <v-col
+          class="cols-12 cols-md-4"
+          v-for="app in allApps"
+          :key="app.id"
+        >
+          <v-card>
+            <v-card-title>
+              {{app.name}}
+            </v-card-title>
+            <v-card-subtitle>
+              {{app.id}}
+            </v-card-subtitle>
+            <v-card-text>
+              {{app.description}}
+            </v-card-text>
+
+            <v-card-text>
+              <p class="text-caption">Projects: </p>
+              <v-list v-if="app.projects.length">
+                <v-list-item 
+                  v-for="p in app.projects"
+                  :key="p.id"
+                  :to="{name: 'project', params: {treeID: p.id}}"
+                  >
+                  {{p.name}}
+                </v-list-item>
+              </v-list>
+              <p v-else>No projects in this app!</p>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn
+                @click="createNewProject(app.id)"
+              >
+              New Project
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+
+    <!-- DOCS  -->
+    <p class="text-h2">Documentation</p>
     <v-row>
-      <v-col cols="4">
+      <v-col class="cols-12 cols-md-4">
         <v-card class="mx-5">
           <v-card-title> Support </v-card-title>
           <v-card-text>
@@ -31,7 +80,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="4">
+      <v-col class="cols-12 cols-md-4">
         <v-card class="mx-2">
           <v-card-title> Code basis </v-card-title>
           <v-card-text>
@@ -48,7 +97,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="4">
+      <v-col class="cols-12 cols-md-4">
         <v-card class="mx-2">
           <v-card-title> how to start </v-card-title>
           <v-card-text>
@@ -70,14 +119,28 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+import settings from "@/settings"
 export default {
   name: "HelloWorld",
 
   data: () => ({
-    author: "Jakob R. Müller",
-    authorEmail: "jakob.muller@chalmers.se",
-    githubLink: "https://github.com/mujakob/sedFrontend",
-    version: "0.1",
   }),
+  computed: {
+    ...mapGetters(["allApps",]),
+
+    version() {
+      return settings.version
+    },
+    author() {
+      return settings.author
+    },
+    authorEmail() {
+      return settings.authorEmail
+    },
+    githubLink() {
+      return settings.githubLink
+    }
+  }
 };
 </script>

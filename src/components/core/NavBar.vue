@@ -2,11 +2,9 @@
   <v-app-bar app>
     <!-- <error-message v-for="(e, index) in errors" :key="index" :error="e" /> -->
 
-    <v-app-bar-title class="mx-5"> My App Title </v-app-bar-title>
+    <v-app-bar-title class="mx-5"> SEDlab </v-app-bar-title>
 
     <v-btn :to="{ name: 'Home' }"> Home </v-btn>
-
-    <v-btn v-if="loggedIn" :to="{ name: 'page2' }"> page2 </v-btn>
 
     <!-- User menug and login -->
     <span class="ml-auto">
@@ -34,9 +32,25 @@
             <v-btn @click="logUserOut"> logout </v-btn>
           </v-list-item>
         </v-list>
+
+        <!-- ADMIN MENU -->
+        <v-list-item-group
+          v-if="getUserScope=='admin'" 
+          style="opacity: 1;"
+        >
+          <v-divider />
+          <v-list-item class="text-caption"> Admin menu: </v-list-item>
+          <v-divider />
+          <v-list-item :to="{name: 'adminAllUsers'}">
+              Other users
+          </v-list-item>
+            <v-list-item :to="{name: 'adminAllProjects'}">
+              All projects
+            </v-list-item>
+        </v-list-item-group>
       </v-menu>
 
-      <v-btn v-else :to="{ name: 'login' }"> login </v-btn>
+      <v-btn v-else :to="{ name: 'userAbout' }"> login </v-btn>
     </span>
   </v-app-bar>
 </template>
@@ -67,7 +81,7 @@ export default {
     // }
   },
   computed: {
-    ...mapGetters(["getUser", "loggedIn"]),
+    ...mapGetters(["getUser", "loggedIn", 'getUserScope']),
     // loggedIn: function() {
     //     return utils.userLoggedIn()
     // },
