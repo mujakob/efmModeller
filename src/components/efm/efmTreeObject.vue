@@ -44,7 +44,7 @@
 
 <script>
 // import utils from "@/utils";
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 
 export default {
   name: "DsTree",
@@ -56,7 +56,7 @@ export default {
         {
           text: "Add new child",
           icon: "mdi-plus",
-          function: 'buttonNewChild',
+          function: "buttonNewChild",
           disabled: false,
         },
         // {
@@ -78,26 +78,23 @@ export default {
           text: "Edit object info",
           icon: "mdi-pencil",
           link: null,
-          function: 'buttonEditSelf',
+          function: "buttonEditSelf",
           disabled: false,
         },
         {
           text: "Delete this object",
           icon: "mdi-delete",
           link: null,
-          function: 'buttonDeleteSelf',
+          function: "buttonDeleteSelf",
           disabled: false,
-        }
-      ]
+        },
+      ],
     };
   },
   computed: {
-    ...mapGetters('efm', [
-      'getEFMobjectByID',
-      'frByID',
-    ]),
+    ...mapGetters("efm", ["getEFMobjectByID", "frByID"]),
     theObject() {
-      return this.getEFMobjectByID(this.objectType, this.objectID)
+      return this.getEFMobjectByID(this.objectType, this.objectID);
     },
     children() {
       if (this.objectType === "ds") {
@@ -105,34 +102,34 @@ export default {
       } else if (this.objectType === "fr") {
         return this.theObject.is_solved_by_id;
       } else {
-        return ''
+        return "";
       }
     },
     otherType() {
       if (this.objectType === "ds") {
-        return 'fr'
+        return "fr";
       } else if (this.objectType === "fr") {
-        return 'ds'
+        return "ds";
       } else {
-        return ''
+        return "";
       }
     },
   },
   props: {
     objectType: {
       type: String,
-      required: true
+      required: true,
     },
     objectID: {
       type: Number,
-      required: true
+      required: true,
     },
     dna: {
       // defines which instance is loaded
       type: String,
       required: false,
-      default: null
-    }
+      default: null,
+    },
   },
   methods: {
     // loadTheObject() {
@@ -168,36 +165,52 @@ export default {
     //   this.theObject = theObj;
     //   this.otherType = otherType
     // },
-    
+
     // emited functions that are escalated up through the tree:
     newObject(data) {
-       this.$emit('newObject', {objectType: data.objectType, editID: data.editID, parentID: data.parentID})
+      this.$emit("newObject", {
+        objectType: data.objectType,
+        editID: data.editID,
+        parentID: data.parentID,
+      });
     },
     deleteObject(data) {
-      this.$emit('deleteObject', {toDeleteID: data.toDeleteID, toDeleteType: data.toDeleteType})
+      this.$emit("deleteObject", {
+        toDeleteID: data.toDeleteID,
+        toDeleteType: data.toDeleteType,
+      });
     },
 
     // helper function for buttons (to enable dynamic button generation with functions)
     handle_function_call(function_name) {
-      this[function_name]()
+      this[function_name]();
     },
     buttonNewChild() {
-      this.$emit('newObject', {objectType: this.otherType, parentID: this.objectID})
+      this.$emit("newObject", {
+        objectType: this.otherType,
+        parentID: this.objectID,
+      });
     },
     buttonEditSelf() {
-      this.$emit('newObject', {objectType: this.objectType, editID: this.objectID})
+      this.$emit("newObject", {
+        objectType: this.objectType,
+        editID: this.objectID,
+      });
     },
     buttonDeleteSelf() {
-      this.$emit('deleteObject', {toDeleteType: this.objectType, toDeleteID: this.objectID})
-    }
+      this.$emit("deleteObject", {
+        toDeleteType: this.objectType,
+        toDeleteID: this.objectID,
+      });
+    },
   },
   mounted() {
     // this.loadTheObject();
-  // },
-  // watch: {
-  //   dna: function() {
-  //     // this.loadTheObject();
-  //   }
-  }
+    // },
+    // watch: {
+    //   dna: function() {
+    //     // this.loadTheObject();
+    //   }
+  },
 };
 </script>

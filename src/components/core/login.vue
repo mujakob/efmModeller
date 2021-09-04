@@ -46,7 +46,7 @@ export default {
     };
   },
   props: {
-    forwardURL: { type: String, default: "" }, 
+    forwardURL: { type: String, default: "" },
   },
   computed: {},
   methods: {
@@ -75,11 +75,9 @@ export default {
       };
       const success = await this.$store.dispatch("login", user);
       if (success & this.forwardURL) {
-        console.log('forwarding to: ' + this.forwardURL)
-        this.$router.push(this.forwardURL)
-      } else (
-        this.$router.push({name: 'Home'})
-      )
+        console.log("forwarding to: " + this.forwardURL);
+        this.$router.push(this.forwardURL);
+      } else this.$router.push({ name: "Home" });
     },
   },
 };

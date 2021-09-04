@@ -1,5 +1,5 @@
 <template>
-  <efm-projects/>
+  <efm-projects />
 </template>
 
 <script>

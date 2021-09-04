@@ -3,13 +3,9 @@
     <v-card-title>All projects:</v-card-title>
 
     <!-- new project button  -->
-    <v-btn
-      @click="newProject"
-    >
-      new project
-    </v-btn>
+    <v-btn @click="newProject"> new project </v-btn>
 
-      <!-- existing projects: -->
+    <!-- existing projects: -->
     <v-expansion-panels>
       <v-expansion-panel v-for="project in allTrees" :key="project.id">
         <v-expansion-panel-header>
@@ -25,25 +21,17 @@
               <p class="text-caption">Project ID: {{ project.id }}</p>
             </v-col>
             <v-col class="shrink">
-              <v-btn
-                @click="editProject(project.id)"
-              >
-                edit
-              </v-btn>
+              <v-btn @click="editProject(project.id)"> edit </v-btn>
             </v-col>
             <v-col class="shrink">
-              <v-btn 
-                @click="deleteProject(project.id)"
-              >
-                delete
-              </v-btn>
+              <v-btn @click="deleteProject(project.id)"> delete </v-btn>
             </v-col>
           </v-row>
           {{ project.description }}
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
-    
+
     <!-- popup for editing/new -->
     <NewDS
       v-if="newObjectPopup"
@@ -52,22 +40,22 @@
       @cancel="newObjectPopup = false"
     />
     <DeleteEFMobject
-        v-if="toDeletePopup"
-        :toDeleteID="deleteObjectID"
-        toDeleteType="tree"
-        @cancel="toDeletePopup = false"
+      v-if="toDeletePopup"
+      :toDeleteID="deleteObjectID"
+      toDeleteType="tree"
+      @cancel="toDeletePopup = false"
     />
   </v-card>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
-import DeleteEFMobject from '../../components/efm/deleteEFMobject.vue';
-import NewDS from '../../components/efm/newEditEFMobject.vue';
+import { mapGetters } from "vuex";
+import DeleteEFMobject from "../../components/efm/deleteEFMobject.vue";
+import NewDS from "../../components/efm/newEditEFMobject.vue";
 
 export default {
-  name: 'efmProjects',
-  components: { 
+  name: "efmProjects",
+  components: {
     NewDS,
     DeleteEFMobject,
   },
@@ -80,25 +68,25 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('efm', ['allTrees'])
+    ...mapGetters("efm", ["allTrees"]),
   },
   methods: {
     newProject() {
-      this.newObjectEditID = 0
-      this.newObjectPopup = true
+      this.newObjectEditID = 0;
+      this.newObjectPopup = true;
     },
     editProject(pID) {
-      this.newObjectEditID = pID
-      this.newObjectPopup = true
+      this.newObjectEditID = pID;
+      this.newObjectPopup = true;
     },
     deleteProject(pID) {
-      this.deleteObjectID = pID
-      this.toDeletePopup = true
-    }
+      this.deleteObjectID = pID;
+      this.toDeletePopup = true;
+    },
   },
   mounted() {
-    this.$store.dispatch('efm/getTreeList')
-  }
+    this.$store.dispatch("efm/getTreeList");
+  },
 };
 </script>
 

@@ -1,75 +1,74 @@
 <template>
-    <v-container>
-        <!-- <treeDS
+  <v-container>
+    <!-- <treeDS
             :dsID="treeInfo.topLvlDSid"
         /> -->
-        <efm-tree-object
-            :objectID="treeInfo.topLvlDSid"
-            objectType="ds"
-            @newObject="newObject"
-            @deleteObject="deleteObject"
-        />
+    <efm-tree-object
+      :objectID="treeInfo.topLvlDSid"
+      objectType="ds"
+      @newObject="newObject"
+      @deleteObject="deleteObject"
+    />
 
-        <NewDS
-            v-if="newObjectPopup"
-            :editID="newObjectEditID"
-            :parentID="newObjectParentID"
-            :objectType="newObjectType"
-            @cancel="newObjectPopup = false"
-        />
+    <NewDS
+      v-if="newObjectPopup"
+      :editID="newObjectEditID"
+      :parentID="newObjectParentID"
+      :objectType="newObjectType"
+      @cancel="newObjectPopup = false"
+    />
 
-        <DeleteEFMobject
-            v-if="toDeletePopup"
-            :toDeleteID="toDeleteID"
-            :toDeleteType="toDeleteType"
-            @cancel="toDeletePopup = false"
-        />
-    </v-container>
+    <DeleteEFMobject
+      v-if="toDeletePopup"
+      :toDeleteID="toDeleteID"
+      :toDeleteType="toDeleteType"
+      @cancel="toDeletePopup = false"
+    />
+  </v-container>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import DeleteEFMobject from '../../components/efm/deleteEFMobject.vue'
-import EfmTreeObject from '../../components/efm/efmTreeObject.vue'
-import NewDS from '../../components/efm/newEditEFMobject.vue'
+import { mapGetters } from "vuex";
+import DeleteEFMobject from "../../components/efm/deleteEFMobject.vue";
+import EfmTreeObject from "../../components/efm/efmTreeObject.vue";
+import NewDS from "../../components/efm/newEditEFMobject.vue";
 // import treeDS from '../../components/efm/treeDS.vue'
 
 export default {
-    components: { EfmTreeObject, NewDS, DeleteEFMobject },
-    data() {
-        return {
-            // for newObject popup:
-            newObjectPopup: false,
-            newObjectEditID: null,
-            newObjectParentID: null,
-            newObjectType: null,
+  components: { EfmTreeObject, NewDS, DeleteEFMobject },
+  data() {
+    return {
+      // for newObject popup:
+      newObjectPopup: false,
+      newObjectEditID: null,
+      newObjectParentID: null,
+      newObjectType: null,
 
-            // for deleteObject popup
-            toDeleteType: null,
-            toDeleteID: null,
-            toDeletePopup: null,
-        }
+      // for deleteObject popup
+      toDeleteType: null,
+      toDeleteID: null,
+      toDeletePopup: null,
+    };
+  },
+  name: "efmTreeView",
+  computed: {
+    ...mapGetters("efm", ["treeInfo"]),
+  },
+  methods: {
+    newObject(data) {
+      this.newObjectEditID = data.editID;
+      this.newObjectParentID = data.parentID;
+      this.newObjectType = data.objectType;
+      this.newObjectPopup = true;
     },
-    name: 'efmTreeView',
-    computed: {
-        ...mapGetters('efm', ['treeInfo'])
+    deleteObject(data) {
+      this.toDeleteID = data.toDeleteID;
+      this.toDeleteType = data.toDeleteType;
+      this.toDeletePopup = true;
     },
-    methods: {
-        newObject(data) {
-            this.newObjectEditID = data.editID
-            this.newObjectParentID = data.parentID
-            this.newObjectType = data.objectType
-            this.newObjectPopup = true
-        },
-        deleteObject(data) {
-            this.toDeleteID = data.toDeleteID
-            this.toDeleteType = data.toDeleteType
-            this.toDeletePopup = true
-        }
-    }
-}
+  },
+};
 </script>
-
 
 <style>
 .efmTree {

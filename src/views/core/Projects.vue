@@ -15,17 +15,15 @@
         <tbody v-if="projectList.length">
           <tr v-for="p in projectList" :key="p.id">
             <td class="text-left">
-                {{p.name}}
+              {{ p.name }}
             </td>
             <td class="text-left">
-              {{aLvl(p.access_level)}}
+              {{ aLvl(p.access_level) }}
             </td>
-            <td class="text-right">
-              to be implemented...
-            </td>
+            <td class="text-right">to be implemented...</td>
           </tr>
         </tbody>
-                <span v-else> No active projects </span>
+        <span v-else> No active projects </span>
       </template>
     </v-simple-table>
   </div>
@@ -34,22 +32,21 @@
 <script>
 // @ is an alias to /src
 import { mapGetters } from "vuex";
-import settings from "@/settings"
+import settings from "@/settings";
 
 export default {
   name: "Home",
-  components: {
-  },
+  components: {},
   computed: {
-    ...mapGetters(['projectList']),
+    ...mapGetters(["projectList"]),
   },
   methods: {
     aLvl(lvl) {
-      return settings.accessLevel(lvl)
-    }
+      return settings.accessLevel(lvl);
+    },
   },
   mounted() {
-    this.$store.dispatch('fetchProjects')
-  }
+    this.$store.dispatch("fetchProjects");
+  },
 };
 </script>

@@ -3,43 +3,39 @@
     <h1>Settings</h1>
     <p>More coming soon...</p>
     <v-list>
+      <v-list-item> version: {{ version }} </v-list-item>
       <v-list-item>
-        version: {{version}}
+        author: <a :href="'mailto:' + authorEmail">{{ author }}</a>
       </v-list-item>
       <v-list-item>
-        author: <a :href="'mailto:'+authorEmail ">{{author}}</a>
-      </v-list-item>
-      <v-list-item>
-        github: <a :href="githubLink" target="_blank">{{githubLink}}</a>
+        github: <a :href="githubLink" target="_blank">{{ githubLink }}</a>
       </v-list-item>
     </v-list>
   </div>
 </template>
 
-
 <script>
-import { mapGetters } from 'vuex';
-import settings from "@/settings"
+import { mapGetters } from "vuex";
+import settings from "@/settings";
 export default {
   name: "HelloWorld",
 
-  data: () => ({
-  }),
+  data: () => ({}),
   computed: {
-    ...mapGetters(["allApps",]),
+    ...mapGetters(["allApps"]),
 
     version() {
-      return settings.version
+      return settings.version;
     },
     author() {
-      return settings.author
+      return settings.author;
     },
     authorEmail() {
-      return settings.authorEmail
+      return settings.authorEmail;
     },
     githubLink() {
-      return settings.githubLink
-    }
-  }
+      return settings.githubLink;
+    },
+  },
 };
 </script>

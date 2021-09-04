@@ -2,9 +2,7 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <p class="text-h1">
-          Welcome to the SED lab frontend boilerplate!
-        </p>
+        <p class="text-h1">Welcome to the SED lab frontend boilerplate!</p>
 
         <h2>version {{ version }}</h2>
 
@@ -15,52 +13,42 @@
       </v-col>
     </v-row>
 
-
     <!-- APPS -->
     <v-container v-if="allApps.length">
-      <p class="text-h2">Installed apps & projects </p>
+      <p class="text-h2">Installed apps & projects</p>
       <v-row>
-        <v-col
-          class="cols-12 cols-md-4"
-          v-for="app in allApps"
-          :key="app.id"
-        >
+        <v-col class="cols-12 cols-md-4" v-for="app in allApps" :key="app.id">
           <v-card>
             <v-card-title>
-              {{app.name}}
+              {{ app.name }}
             </v-card-title>
             <v-card-subtitle>
-              {{app.id}}
+              {{ app.id }}
             </v-card-subtitle>
             <v-card-text>
-              {{app.description}}
+              {{ app.description }}
             </v-card-text>
 
             <v-card-text>
-              <p class="text-caption">Projects: </p>
+              <p class="text-caption">Projects:</p>
               <v-list v-if="app.projects.length">
-                <v-list-item 
+                <v-list-item
                   v-for="p in app.projects"
                   :key="p.id"
-                  :to="{name: 'project', params: {treeID: p.id}}"
-                  >
-                  {{p.name}}
+                  :to="{ name: 'project', params: { treeID: p.id } }"
+                >
+                  {{ p.name }}
                 </v-list-item>
               </v-list>
               <p v-else>No projects in this app!</p>
             </v-card-text>
             <v-card-actions>
-              <v-btn
-                @click="createNewProject(app.id)"
-              >
-              New Project
-              </v-btn>
+              <v-btn @click="createNewProject(app.id)"> New Project </v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
-
 
     <!-- DOCS  -->
     <p class="text-h2">Documentation</p>
@@ -119,28 +107,27 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
-import settings from "@/settings"
+import { mapGetters } from "vuex";
+import settings from "@/settings";
 export default {
   name: "HelloWorld",
 
-  data: () => ({
-  }),
+  data: () => ({}),
   computed: {
-    ...mapGetters(["allApps",]),
+    ...mapGetters(["allApps"]),
 
     version() {
-      return settings.version
+      return settings.version;
     },
     author() {
-      return settings.author
+      return settings.author;
     },
     authorEmail() {
-      return settings.authorEmail
+      return settings.authorEmail;
     },
     githubLink() {
-      return settings.githubLink
-    }
-  }
+      return settings.githubLink;
+    },
+  },
 };
 </script>

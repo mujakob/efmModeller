@@ -1,7 +1,6 @@
 <template>
   <div class="efmWorkingSpace fill-height">
-    <efm-tree-view
-        />
+    <efm-tree-view />
   </div>
 </template>
 
@@ -9,7 +8,7 @@
 // import treeMenu from "@/components/menu/treeMenu.vue";
 import efmTreeView from "@/views/efm/efmTreeView.vue";
 // import Concepts from "@/components/efm/concepts.vue";
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions, mapGetters } from "vuex";
 
 export default {
   components: {
@@ -26,38 +25,34 @@ export default {
       theProject: null,
       errors: [],
       zoom: 1,
-      currentConcept: null
+      currentConcept: null,
     };
   },
   props: {
     treeID: {
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
     async loadProject() {
-      this.getTree({treeID: this.treeID})
+      this.getTree({ treeID: this.treeID });
     },
   },
   computed: {
-    ...mapGetters('efm', [
-      'treeInfo',
-    ]),
-    ...mapActions('efm', [
-      'getTree',
-    ]),
-    efmTreeAreaCols: function() {
+    ...mapGetters("efm", ["treeInfo"]),
+    ...mapActions("efm", ["getTree"]),
+    efmTreeAreaCols: function () {
       console.log("showConcept " + this.showConceptsPane * 2);
       console.log("showInfo " + this.showObjectInfoPane * 2);
       let efmTreeWidth =
         12 - this.showConceptsPane * 2 - this.showObjectInfoPane * 2;
       console.log("efmTreeWidth " + efmTreeWidth);
       return efmTreeWidth;
-    }
+    },
   },
   mounted() {
-    this.$store.dispatch("efm/getTree", {treeID: this.treeID});
-  }
+    this.$store.dispatch("efm/getTree", { treeID: this.treeID });
+  },
 };
 </script>
 

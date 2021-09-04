@@ -27,13 +27,10 @@ export default {
     ErrorMessage,
   },
   computed: {
-    ...mapGetters(["getAllErrors",]),
+    ...mapGetters(["getAllErrors"]),
   },
-  mounted() {
-  }
+  mounted() {},
 };
 </script>
 
-<style>
-
-</style>
+<style></style>
