@@ -59,21 +59,21 @@ export default {
           function: 'buttonNewChild',
           disabled: false,
         },
-        {
-          text: "Show object info",
-          icon: "mdi-badge-account-alert",
-          link: {
-            name: this.objectType + "Detail",
-            params: { objID: this.objectID }
-          },
-          disabled: true,
-        },
-        {
-          text: "Move object to new parent",
-          icon: "mdi-source-pull",
-          link: null,
-          disabled: true,
-        },
+        // {
+        //   text: "Show object info",
+        //   icon: "mdi-badge-account-alert",
+        //   link: {
+        //     name: this.objectType + "Detail",
+        //     params: { objID: this.objectID }
+        //   },
+        //   disabled: true,
+        // },
+        // {
+        //   text: "Move object to new parent",
+        //   icon: "mdi-source-pull",
+        //   link: null,
+        //   disabled: true,
+        // },
         {
           text: "Edit object info",
           icon: "mdi-pencil",
