@@ -3,9 +3,8 @@ import Vuex from "vuex";
 
 import settings from "@/settings"
 
-Vue.use(Vuex);
+Vue.use(Vuex); 
 
-const efmObjects = settings.efmObjects
 
 const efmStore = {
   namespaced: true,
@@ -34,6 +33,66 @@ const efmStore = {
     efmViewMenu: {
       showConceptsPane: false,
       showObjectInfoPane: false,
+    },
+    efmObjects: {
+      ds: {
+        string: 'Design Solution',
+        short: 'DS',
+        getURL: 'ds/{id}',
+        postURL: 'ds/new',
+        putURL: 'ds/{id}',
+        deleteURL: 'ds/{id}',
+        postMutation: 'newDS',
+        putMutation: 'editDS',
+        deleteMutation: 'deleteDS',
+        requiredFields: {
+          'name': 'name',       // API : fieldName
+          'isbID': 'parentID',
+        },
+        optionalFields: {
+          'description': 'description',
+          'treeID': 'treeID',
+          'is_top_level_DS': 'is_top_level_DS',
+        },
+        children: 'requires_functions_id',
+      },
+      fr: {
+        string: 'Functional Requirement',
+        short: 'FR',
+        getURL: 'fr/{id}',
+        postURL: 'fr/new',
+        putURL: 'fr/{id}',
+        deleteURL: 'fr/{id}',
+        postMutation: 'newFR',
+        putMutation: 'editFR',
+        deleteMutation: 'deleteFR',
+        requiredFields: {
+          'name': 'name',       // API : fieldName
+          'rfID': 'parentID',
+        },
+        optionalFields: {
+          'description': 'description',
+          'treeID': 'treeID',
+        },
+        children: 'is_solved_by_id',
+      },
+      tree: {
+        string: 'EFM tree',
+        short: 'Tree',
+        getURL: 'trees/{id}',
+        postURL: 'trees/',
+        putURL: 'trees/{id}',
+        deleteURL: 'trees/{id}',
+        postMutation: 'newTree',
+        putMutation: 'editTree',
+        deleteMutation: 'deleteTree',
+        requiredFields: {
+          'name': 'name',       // API : fieldName
+        },
+        optionalFields: {
+          'description': 'description',
+        }
+      },
     }
   },
   getters: {
@@ -57,6 +116,17 @@ const efmStore = {
     },
     iwByID: (state) => (id) => {
       return state.iw.find(ds => ds.id == id)
+    },
+    EFMobjectInfo: (state) => (type, id=null) => {
+      // returns info about EFM Object
+      let objInfo = state.efmObjects[type]
+      // if id is set, it already adapts all URLs and other info which is ID sensitive:
+      if (id) {
+        for (let i of objInfo) {
+          i = i.replace('{id}', id)
+        }
+      }
+      return objInfo
     },
     getEFMobjectByID: (state) => (type, id) => {
       return state[type].find(obj => obj.id == id)
@@ -236,12 +306,12 @@ const efmStore = {
       }
     },
     
-    async newEFMobject({commit, dispatch}, {type, data}) {
+    async newEFMobject({getters, commit, dispatch}, {type, data}) {
       // submits "data" to the right backend point depending on efmObjects / type
       // posts the return value to local storage
       // returns new object or null (if error)
       
-      const objType = efmObjects[type]
+      const objType = getters.EFMobjectInfo(type)
 
       var newObject = null;
 
@@ -262,6 +332,7 @@ const efmStore = {
         return false;
       }
       if (newObject) {
+
         commit(objType.postMutation, newObject);
         commit(
           "goodNews",
@@ -271,18 +342,19 @@ const efmStore = {
           },
           { root: true }
         );
+
         return newObject;
       } else {
         return null;
       }
     },
-    async editEFMobject({ commit, dispatch }, { type, data }) {
+    async editEFMobject({getters, commit, dispatch }, { type, data }) {
       // submits "data" to the right backend point depending on efmObjects / type
       // id for backend is taken from data.id
       // posts the return value to local storage
       // returns new object or null (if error)
       
-      const objType = efmObjects[type]
+      const objType = getters.EFMobjectInfo(type, data.id)
 
       let putURL = objType.putURL
       // replace {id} in url with data.id
@@ -292,7 +364,7 @@ const efmStore = {
       let newObjectData = await dispatch(
         "apiCall",
         {
-          url: 'efm/' + putURL,
+          url: 'efm/' + objType.putURL,
           method: "PUT",
           objectData: data,
         },
@@ -314,21 +386,17 @@ const efmStore = {
       }
       return newObjectData;
     },
-    async deleteEFMobject({ commit, dispatch }, { type, id }) {
+    async deleteEFMobject({getters, commit, dispatch }, { type, id }) {
       // deletes object from backend depending on efmObjects / type
       // when success, removes from state
       // returns true/false based on success
       
-      const objType = efmObjects[type]
-
-      let deleteURL = objType.deleteURL
-      // replace {id} in url with data.id
-      deleteURL = deleteURL.replace('{id}', id);
+      const objType = getters.EFMobjectInfo(type, id)
       
       let deletion = await dispatch(
         "apiCall",
         {
-          url: 'efm/' + deleteURL,
+          url: 'efm/' + objType.deleteURL,
           method: "DELETE",
         },
         { root: true }
@@ -347,6 +415,7 @@ const efmStore = {
         return true;
       }
     },
+    
   },
   modules: {}
 }

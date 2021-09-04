@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import settings from "@/settings"
 import { mapGetters } from 'vuex'
 
 export default {
@@ -144,9 +143,9 @@ export default {
     },
     computed: {
         ...mapGetters(['getErrorsOfComponent']),
-        ...mapGetters('efm', ['getEFMobjectByID']),
+        ...mapGetters('efm', ['getEFMobjectByID', 'EFMobjectInfo']),
         objectInfo() {
-            return settings.efmObjects[this.objectType]
+            return this.EFMobjectInfo(this.objectType)
         },
         titleText() {
             if (this.editID) {

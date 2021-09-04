@@ -39,7 +39,8 @@ export default {
         'description': 'description',
         'treeID': 'treeID',
         'is_top_level_DS': 'is_top_level_DS',
-      }
+      },
+      children: 'requires_functions_id',
     },
     fr: {
       string: 'Functional Requirement',
@@ -58,7 +59,8 @@ export default {
       optionalFields: {
         'description': 'description',
         'treeID': 'treeID',
-      }
+      },
+      children: 'is_solved_by_id',
     },
     tree: {
       string: 'EFM tree',
