@@ -37,6 +37,7 @@ const efmStore = {
     efmObjects: {
       ds: {
         string: 'Design Solution',
+        objType: 'ds',
         short: 'DS',
         getURL: 'ds/{id}',
         postURL: 'ds/new',
@@ -54,10 +55,24 @@ const efmStore = {
           'treeID': 'treeID',
           'is_top_level_DS': 'is_top_level_DS',
         },
-        children: 'requires_functions_id',
+        children: [
+          {
+            list: 'requires_functions_id',
+            type: 'fr',
+          },
+          {
+            list: 'interacts_with_id',
+            type: 'iw',
+          },
+          // {    // Not implemented yet!
+          //   list: 'design_parameter_id',
+          //   type: 'dp'
+          // },
+        ],
       },
       fr: {
         string: 'Functional Requirement',
+        objType: 'fr',
         short: 'FR',
         getURL: 'fr/{id}',
         postURL: 'fr/new',
@@ -74,10 +89,14 @@ const efmStore = {
           'description': 'description',
           'treeID': 'treeID',
         },
-        children: 'is_solved_by_id',
+        children: [{
+          list: 'is_solved_by_id',
+          type: 'ds',
+        }],
       },
       tree: {
         string: 'EFM tree',
+        objType: 'tree',
         short: 'Tree',
         getURL: 'trees/{id}',
         postURL: 'trees/',
@@ -91,7 +110,11 @@ const efmStore = {
         },
         optionalFields: {
           'description': 'description',
-        }
+        },
+        children: [{
+          list: 'topLvlDSid',
+          type: 'ds',
+        }]
       },
     }
   },
@@ -122,8 +145,10 @@ const efmStore = {
       let objInfo = state.efmObjects[type]
       // if id is set, it already adapts all URLs and other info which is ID sensitive:
       if (id) {
-        for (let i of objInfo) {
-          i = i.replace('{id}', id)
+        for (let i in objInfo) {
+          if (typeof objInfo[i] == 'string') {
+            objInfo[i] = objInfo[i].replace('{id}', id)
+          }
         }
       }
       return objInfo
@@ -131,7 +156,29 @@ const efmStore = {
     getEFMobjectByID: (state) => (type, id) => {
       return state[type].find(obj => obj.id == id)
     },
+    efmObjectChildren: (getters) => (type, id) => {
+      // returns list with type, id of each childobject of an efm object
+      // needed for state consistency checks with the backend
+      const objType = getters.EFMobjectInfo(type, id)
+      const theObject = getters.getEFMobjectByID(type, id)
 
+      let allChildrenList = []
+
+      for (let c in objType.children ) {
+        // c is like {type: 'ds', list: 'is_solved_by_id'}
+        if (Array.isArray(theObject[c.list])) {
+          // here we iterate through the objects children list
+          for (let cc in theObject[c.list]) {
+            // c.list contains IDs when backend is set correctly
+            allChildrenList.push(c.type, cc)
+          } 
+        } else {
+          // in case that c.list is no list but just a single value, e.g. topLvlDSid
+          allChildrenList.push(c.type, c.list)
+        }
+      }
+      return allChildrenList
+    },
     // Concepts
     allConcepts: (state) => {
       return state.concepts
@@ -270,11 +317,12 @@ const efmStore = {
       commit("setTreeList", allTrees);
       return allTrees
     },
-    async getTree({ commit, dispatch }, {treeID}) {
+    async getTree({commit, dispatch }, {treeID}) {
+      
       let theTree = await dispatch(
         "apiCall",
         {
-          url: "efm/trees/"+treeID+"/data",
+          url: "efm/trees/" + treeID + "/data",
           method: "GET",
         },
         { root: true }
@@ -286,6 +334,14 @@ const efmStore = {
         commit('setAllEfmObjects', theTree)
         commit('goodNews', 'Loaded all elements of "'+theTree.name+'".', {root: true})
       }
+    },
+    async updateTree({ getters, commit, dispatch }) {
+      // updates all current tree data via /trees/id/data
+      // actually only wrapts getTree with the current tree's ID
+      let treeID = getters.treeInfo.id
+      console.log('ffs: ' + treeID)
+      dispatch('getTree', {treeID})
+      commit('goodNews', 'updated all tree items', {root: true})
     },
     async getConcepts({getters, commit, dispatch},) {
       const theTree = getters.treeInfo
@@ -333,7 +389,7 @@ const efmStore = {
       }
       if (newObject) {
 
-        commit(objType.postMutation, newObject);
+        // commit(objType.postMutation, newObject);
         commit(
           "goodNews",
           {
@@ -342,7 +398,9 @@ const efmStore = {
           },
           { root: true }
         );
-
+        
+        // update all tree data, since doing it one by one is too complicated:
+        dispatch('updateTree')
         return newObject;
       } else {
         return null;
@@ -372,9 +430,9 @@ const efmStore = {
       );
 
       if (newObjectData) {
-        console.log('WE HAVE DATA')
-        console.log(objType.putMutation, newObjectData)
-        commit(objType.putMutation, newObjectData);
+        // console.log('WE HAVE DATA')
+        // console.log(objType.putMutation, newObjectData)
+        // commit(objType.putMutation, newObjectData);
         commit(
           "goodNews",
           {
@@ -383,6 +441,9 @@ const efmStore = {
           },
           { root: true }
         );
+        
+        // update all tree data, since doing it one by one is too complicated:
+        dispatch('updateTree')
       }
       return newObjectData;
     },
@@ -403,7 +464,7 @@ const efmStore = {
       );
       console.log(deletion);
       if (deletion) {
-        commit(objType.deleteMutation, id);
+        // commit(objType.deleteMutation, id);
         commit(
           "goodNews",
           {
@@ -412,10 +473,49 @@ const efmStore = {
           },
           { root: true }
         );
+        // // and we need to check all the children too, since they probably need to be removed as well
+        // for (let child of getters.efmObjectChildren(type, id)) {
+        //   // child should be [type, id]
+        //   dispatch('updateEFMobject', {type: child[0], id: child[1]})
+        // }
+
+        // update all tree data, since doing it one by one is too complicated:
+        dispatch('updateTree')
         return true;
       }
     },
-    
+    async updateEFMobject({getters, commit, dispatch}, {type, id}) {
+      // fetches the info of a EFM object and updates state
+      // deletes if 404
+      // recursively updates children
+      // mainly used in edit and delete EFM object actions for chidlren and parents of edited/deleted objects
+      
+      const objType = getters.EFMobjectInfo(type, id)
+
+      // let theObjectInState = getters.getEFMobjectByID(type, id)
+
+      let theObjectFromDB = await dispatch(
+        "apiCall",
+        {
+          url: 'efm/' + objType.getURL,
+          method: "GET",
+        },
+          { root: true }
+        );
+
+      if (theObjectFromDB === 404) { // type sensitive check needed here!
+      // if 404 (not found, i.e. deleted) we remove from state:
+        commit(objType.deleteMutation, id)
+        // and we need to check all the children too, since they probably need to be removed as well
+        for (let child of getters.efmObjectChildren(type, id)) {
+          // child should be [type, id]
+          dispatch('updateEFMobject', {type: child[0], id: child[1]})
+        }
+      } else if (theObjectFromDB) {
+        // if we get a return we just update it in state:
+        commit(objType.putMutation, theObjectFromDB)
+      }
+    },
   },
   modules: {}
 }
@@ -857,6 +957,8 @@ export default new Vuex.Store({
       console.log(method)
       console.log(objectData)
 
+      let returnValue = false
+
       try {
         ////////////////////////////////////////////////////////////
         // assembling URL
@@ -917,15 +1019,13 @@ export default new Vuex.Store({
         //const data = await response.json()
         if (response.status === 200) {
           //console.log(response.json())
-          let returnValue = await response.json();
+          returnValue = await response.json();
           console.log(returnValue)
           // console.log(returnValue)
           if (!returnValue) {
             // in case of e.g. deletion where there is only 200 as response
             returnValue = true
           }
-          commit('stopLoading')
-          return returnValue;
         } else if (response.status === 401) {
           // commit("logout");
           commit("registerError", {
@@ -933,6 +1033,13 @@ export default new Vuex.Store({
               "You are not logged in or don't have permission for this function",
             component: "APIcall",
           });
+        } else if (response.status === 404) {
+          commit("registerError", {
+            message:
+              "Element couold not be found",
+            component: "APIcall",
+          });
+          returnValue = 404    // identifier for a 404
         } else {
           commit("registerError", {
             message: 
@@ -957,6 +1064,7 @@ export default new Vuex.Store({
         });
       }
       commit('stopLoading')
+      return returnValue;
     },
     async fetchApps({commit, dispatch}) {
       // Fetches the app info from the backend and stores into store.apps
