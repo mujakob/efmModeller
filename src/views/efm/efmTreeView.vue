@@ -4,6 +4,7 @@
             :dsID="treeInfo.topLvlDSid"
         /> -->
     <efm-tree-object
+      v-if="treeInfo"
       :objectID="treeInfo.topLvlDSid"
       objectType="ds"
       @newObject="newObject"

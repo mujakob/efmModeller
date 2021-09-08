@@ -9,7 +9,23 @@
         v-model="newObject.name"
         label="name"
         :rules="rules.notEmpty"
+      /> 
+      
+      <v-text-field
+        v-model="newObject.description"
+        label="Description"
       />
+
+      <v-select
+        v-model="newObject.parentID"
+        :items="allPossibleParents"
+        label="Parent object"
+        item-text="name"
+        item-value="id"
+        :rules="[rules.notEmpty]"
+      ></v-select>
+
+
       <v-text-field v-model="newObject.description" label="description" />
       <v-card-actions>
         <v-btn @click="save"> save </v-btn>
@@ -132,7 +148,11 @@ export default {
   },
   computed: {
     ...mapGetters(["getErrorsOfComponent"]),
-    ...mapGetters("efm", ["getEFMobjectByID", "EFMobjectInfo"]),
+    ...mapGetters("efm", [
+        "getEFMobjectByID", 
+        "EFMobjectInfo", 
+        "efmObjectPossibleParents"
+        ]),
     objectInfo() {
       return this.EFMobjectInfo(this.objectType);
     },
@@ -143,6 +163,9 @@ export default {
         return "Creating new " + this.objectInfo.short;
       }
     },
+    allPossibleParents() {
+        return this.efmObjectPossibleParents(this.objectType, this.editID)
+    }
   },
   mounted() {
     this.loadObject();

@@ -68,6 +68,7 @@ const efmStore = {
           //   type: 'dp'
           // },
         ],
+        parentType: 'fr',
       },
       fr: {
         string: "Functional Requirement",
@@ -94,6 +95,7 @@ const efmStore = {
             type: "ds",
           },
         ],
+        parentType: 'ds',
       },
       tree: {
         string: "EFM tree",
@@ -161,28 +163,85 @@ const efmStore = {
     getEFMobjectByID: (state) => (type, id) => {
       return state[type].find((obj) => obj.id == id);
     },
-    efmObjectChildren: (getters) => (type, id) => {
+    getEFMobjectsByType: (state) => (type) => {
+      return state[type]
+    },
+    efmObjectChildren: (state, getters) => (type, id) => {
       // returns list with type, id of each childobject of an efm object
       // needed for state consistency checks with the backend
+      console.log('getting all children of ' + type + id)
       const objType = getters.EFMobjectInfo(type, id);
       const theObject = getters.getEFMobjectByID(type, id);
 
       let allChildrenList = [];
 
-      for (let c in objType.children) {
+      for (let c of objType.children) {
+        console.log('collecting children of type ' + c.type + ' for ' + type + id)
         // c is like {type: 'ds', list: 'is_solved_by_id'}
         if (Array.isArray(theObject[c.list])) {
           // here we iterate through the objects children list
-          for (let cc in theObject[c.list]) {
+          for (let cc of theObject[c.list]) {
             // c.list contains IDs when backend is set correctly
-            allChildrenList.push(c.type, cc);
+            
+            console.log('found child ' + c.type + cc + ' of ' + type + id)
+            allChildrenList.push({type: c.type, id: cc});
           }
         } else {
           // in case that c.list is no list but just a single value, e.g. topLvlDSid
-          allChildrenList.push(c.type, c.list);
+          console.log('found child' + c.type + c.list + ' of ' + type + id)
+          allChildrenList.push({type: c.type, id: c.list});
         }
       }
       return allChildrenList;
+    },
+    efmObjectAllChildrenRecursive: (state, getters) => (type, id) => {
+      console.log('getting all children (recursive) of ' + type + id)
+      let allChildrenList = getters.efmObjectChildren(type, id)
+      console.log('allChildrenList' + type + id)
+      console.log(allChildrenList)
+
+      let returnChildrenList = []
+      
+      for (let c of allChildrenList) {
+
+        console.log('recursing one level deper onto ' + c.type + c.id)
+        let recursiveChildren = getters.efmObjectAllChildrenRecursive(c.type, c.id)
+        returnChildrenList = returnChildrenList.concat(recursiveChildren)
+      }
+
+      returnChildrenList = returnChildrenList.concat(allChildrenList)
+
+      console.log('returnChilrenList' + type + id)
+      console.log(returnChildrenList)
+      return returnChildrenList
+    },
+    efmObjectPossibleParents: (state, getters) => (type, id) => {
+      // returns a lost of possible parent objects,
+      // that is all objects of other type ( DS <> FR ) which are not below in the tree
+      // returns list of objects
+      console.log('getting all possible parents of ' + type + id)
+    
+      const objInfo = getters.EFMobjectInfo(type, id)
+      
+      let allPossibleParents = getters.getEFMobjectsByType(objInfo.parentType)
+
+      let allChildrenID = getters.efmObjectAllChildrenRecursive(type, id)
+
+      let allChildren = [] // rewrite array with objects instead of type:id pairs
+      for (let c of allChildrenID) {
+        // c[0] = type, c[1] = id
+        if (c.type == objInfo.parentType) { // filter to only include parentType
+          allChildren.push(getters.getEFMobjectByID(c.type, c.id))
+        } 
+      }
+      console.log('lists in possibleparent function')
+      console.log(allChildrenID)
+      console.log(allChildren)
+      console.log(allPossibleParents)
+      allPossibleParents = allPossibleParents.filter(p => !allChildren.includes(p))
+      
+      return allPossibleParents
+
     },
     // Concepts
     allConcepts: (state) => {
