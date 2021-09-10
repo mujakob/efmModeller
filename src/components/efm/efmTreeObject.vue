@@ -1,10 +1,29 @@
 <template>
   <div v-if="theObject" :id="objectType + objectID" class="efmElement">
-    <v-card :class="objectType">
+    <v-card 
+      :class="[
+        objectType, 
+        isToBeSelected ? 'toBeSelected' : '',
+      ]"
+    >
       <!-- <router-link :to="{
                 name: '${objectType}Detail',
                 params: {dsID: String(theDS.id)}
                 }"> -->
+
+      <!-- button to answer the "select this" call  -->
+      <v-btn
+        v-if="isToBeSelected"
+        absolute
+        fab
+        @click="selectThis"
+        class="mr-auto mt-5"
+        color="yellow"
+        >
+        <v-icon>mdi-source-pull</v-icon>
+      </v-btn>
+
+      <!-- element card details  -->
       <v-card-title class="text-h5">{{ theObject.name }}</v-card-title>
       <!-- </router-link> -->
       <v-card-text>{{ theObject.description }}</v-card-text>
@@ -68,12 +87,12 @@ export default {
         //   },
         //   disabled: true,
         // },
-        // {
-        //   text: "Move object to new parent",
-        //   icon: "mdi-source-pull",
-        //   link: null,
-        //   disabled: true,
-        // },
+        {
+          text: "Move object to new parent",
+          icon: "mdi-source-pull",
+          function: 'buttonSelectNewParent',
+          disabled: false,
+        },
         {
           text: "Edit object info",
           icon: "mdi-pencil",
@@ -89,10 +108,20 @@ export default {
           disabled: false,
         },
       ],
+      // parameters for gui editing watchers:
+      waitingForNewParent: false,
     };
   },
   computed: {
-    ...mapGetters("efm", ["getEFMobjectByID", "frByID"]),
+    ...mapGetters("efm", [
+      "getEFMobjectByID", 
+      "frByID",
+      "objectIsToBeSelected",
+      "efmObjectPossibleParents",
+      "theSelectedObject",
+      "EFMobjectInfo",
+    ]),
+
     theObject() {
       return this.getEFMobjectByID(this.objectType, this.objectID);
     },
@@ -114,6 +143,13 @@ export default {
         return "";
       }
     },
+    isToBeSelected() {
+      return this.objectIsToBeSelected(this.objectType, this.objectID)
+    },
+    objectInfo() {
+      return this.EFMobjectInfo(this.objectType, this.objectID)
+    },
+
   },
   props: {
     objectType: {
@@ -203,6 +239,26 @@ export default {
         toDeleteID: this.objectID,
       });
     },
+    buttonSelectNewParent() {
+      // first we set the objects to select in the gui to possible parents
+      this.$store.commit('efm/setObjectsToSelect', this.efmObjectPossibleParents(this.objectType, this.objectID))
+      this.$store.commit('efm/setWaitingForNewParent',({type: this.objectType, id: this.objectID}))
+      // set watching parameter:
+      this.waitingForNewParent = true
+    },
+
+    // GUI selection mecahnism
+    async selectThis() {
+      console.log('selected ' + this.objectType + this.objectID)
+      this.$store.commit('efm/objectIsSelected', {type: this.objectType, id: this.objectID})
+      let newParentIsSet = await this.$store.dispatch('efm/setNewParentFromGui', {newParent: this.theObject})
+      // resetting the selection mode
+      if (newParentIsSet) {
+        this.$store.commit('efm/setObjectsToSelect', [])
+      }
+    },
+    
+
   },
   mounted() {
     // this.loadTheObject();
@@ -212,5 +268,18 @@ export default {
     //     // this.loadTheObject();
     //   }
   },
+  watch: {
+    // theSelectedObject: function(val) {
+    //   if (val && this.theSelectedObject) {
+    //     console.log('FOUND ONE')
+    //   }
+    // }
+  }
 };
 </script>
+
+<style scoped>
+  .toBeSelected {
+    border: 2px solid yellow;
+  }
+</style>

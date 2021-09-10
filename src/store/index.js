@@ -69,6 +69,7 @@ const efmStore = {
           // },
         ],
         parentType: 'fr',
+        newParentUrl: 'ds/{id}/isb',
       },
       fr: {
         string: "Functional Requirement",
@@ -96,6 +97,7 @@ const efmStore = {
           },
         ],
         parentType: 'ds',
+        newParentUrl: 'fr/{id}/rf',
       },
       tree: {
         string: "EFM tree",
@@ -122,6 +124,10 @@ const efmStore = {
         ],
       },
     },
+    // the following two are for GUI selection of new parents etc
+    objectsToSelect: [], // list of efm objects
+    selectedObject: null,
+    objectWaitingForNewParent: null, // {type, id}
   },
   getters: {
     // treeList
@@ -169,57 +175,57 @@ const efmStore = {
     efmObjectChildren: (state, getters) => (type, id) => {
       // returns list with type, id of each childobject of an efm object
       // needed for state consistency checks with the backend
-      console.log('getting all children of ' + type + id)
+      // console.log('getting all children of ' + type + id)
       const objType = getters.EFMobjectInfo(type, id);
       const theObject = getters.getEFMobjectByID(type, id);
 
       let allChildrenList = [];
 
       for (let c of objType.children) {
-        console.log('collecting children of type ' + c.type + ' for ' + type + id)
+        // console.log('collecting children of type ' + c.type + ' for ' + type + id)
         // c is like {type: 'ds', list: 'is_solved_by_id'}
         if (Array.isArray(theObject[c.list])) {
           // here we iterate through the objects children list
           for (let cc of theObject[c.list]) {
             // c.list contains IDs when backend is set correctly
             
-            console.log('found child ' + c.type + cc + ' of ' + type + id)
+            // console.log('found child ' + c.type + cc + ' of ' + type + id)
             allChildrenList.push({type: c.type, id: cc});
           }
         } else {
           // in case that c.list is no list but just a single value, e.g. topLvlDSid
-          console.log('found child' + c.type + c.list + ' of ' + type + id)
+          // console.log('found child' + c.type + c.list + ' of ' + type + id)
           allChildrenList.push({type: c.type, id: c.list});
         }
       }
       return allChildrenList;
     },
     efmObjectAllChildrenRecursive: (state, getters) => (type, id) => {
-      console.log('getting all children (recursive) of ' + type + id)
+      // console.log('getting all children (recursive) of ' + type + id)
       let allChildrenList = getters.efmObjectChildren(type, id)
-      console.log('allChildrenList' + type + id)
-      console.log(allChildrenList)
+      // console.log('allChildrenList' + type + id)
+      // console.log(allChildrenList)
 
       let returnChildrenList = []
       
       for (let c of allChildrenList) {
 
-        console.log('recursing one level deper onto ' + c.type + c.id)
+        // console.log('recursing one level deper onto ' + c.type + c.id)
         let recursiveChildren = getters.efmObjectAllChildrenRecursive(c.type, c.id)
         returnChildrenList = returnChildrenList.concat(recursiveChildren)
       }
 
       returnChildrenList = returnChildrenList.concat(allChildrenList)
 
-      console.log('returnChilrenList' + type + id)
-      console.log(returnChildrenList)
+      // console.log('returnChilrenList' + type + id)
+      // console.log(returnChildrenList)
       return returnChildrenList
     },
     efmObjectPossibleParents: (state, getters) => (type, id) => {
-      // returns a lost of possible parent objects,
+      // returns a list of possible parent objects,
       // that is all objects of other type ( DS <> FR ) which are not below in the tree
       // returns list of objects
-      console.log('getting all possible parents of ' + type + id)
+      // console.log('getting all possible parents of ' + type + id)
     
       const objInfo = getters.EFMobjectInfo(type, id)
       
@@ -234,15 +240,36 @@ const efmStore = {
           allChildren.push(getters.getEFMobjectByID(c.type, c.id))
         } 
       }
-      console.log('lists in possibleparent function')
-      console.log(allChildrenID)
-      console.log(allChildren)
-      console.log(allPossibleParents)
+      // console.log('lists in possibleparent function')
+      // console.log(allChildrenID)
+      // console.log(allChildren)
+      // console.log(allPossibleParents)
       allPossibleParents = allPossibleParents.filter(p => !allChildren.includes(p))
       
       return allPossibleParents
 
     },
+    // for GUI based selection of new parents ect
+    objectIsToBeSelected: (state, getters) => (type, id) => {
+      // returns true/false whether type, id is in the array objectsToSelect
+      // console.log('objectIsToBeSelected: ' + type + id)
+      const theObj = getters.getEFMobjectByID(type, id)
+      const isInSelectedObjects = state.objectsToSelect.find(o => o == theObj)
+      // console.log(isInSelectedObjects)
+      // console.log(state.objectsToSelect)
+      if (isInSelectedObjects) {
+        return true
+      } else {
+        return false
+      }
+    },
+    theSelectedObject: (state) => {
+      return state.selectedObject
+    },
+    whoIsWaitingForParent: (state) => {
+      return state.objectWaitingForNewParent
+    },
+
     // Concepts
     allConcepts: (state) => {
       return state.concepts;
@@ -352,6 +379,22 @@ const efmStore = {
     deleteC(state, id) {
       state.c = state.c.filter((obj) => obj.id != id);
     },
+
+    // gui based selections
+    setObjectsToSelect(state, objectList) {
+      // sets the list of to be selected objects to objectList
+      // objectList must be  [{type: type, id:id}, ...]
+      state.objectsToSelect = objectList
+    },
+    objectIsSelected(state, object) {
+      // sets the selected object to object
+      // object is {type, id} pair
+      state.selectedObject = object
+    },
+    setWaitingForNewParent(state, object) {
+      // object= {type, id}
+      state.objectWaitingForNewParent = object
+    }
   },
   actions: {
     async getTreeList({ commit, dispatch }) {
@@ -572,6 +615,46 @@ const efmStore = {
         commit(objType.putMutation, theObjectFromDB);
       }
     },
+
+    async setNewParentFromGui({getters, commit, dispatch}, {newParent}) {
+
+      if (getters.whoIsWaitingForParent) {
+        console.log('setting new parent via GUI')
+
+        // fetch who is waiting for the parent
+        const theObj = getters.whoIsWaitingForParent
+
+        // fetch object info for that
+        const objectInfo = getters.EFMobjectInfo(theObj.type, theObj.id)
+        const parentType = objectInfo.parentType
+
+        console.log('setting new parents for' + theObj.type + theObj.id + ', parentType: ' + parentType + ', new parent: ' + newParent.name )
+        
+        let submitData = {query:'newParentID', value: newParent.id}
+        
+        let newParentUrl = objectInfo.newParentUrl
+        // dispatch to backend  
+        let newObjData = await dispatch(
+          "apiCall",
+          {
+            url: "efm/" + newParentUrl,
+            query: [submitData],
+            method: "PUT",
+          },
+          { root: true }
+        );
+
+        // and we have to reset all variables:
+        commit('setWaitingForNewParent', null)
+        commit('objectIsSelected', null)
+
+        // update all tree data, since doing it one by one is too complicated:
+        dispatch("updateTree");
+        
+
+        return newObjData
+      }
+    }
   },
   modules: {},
 };

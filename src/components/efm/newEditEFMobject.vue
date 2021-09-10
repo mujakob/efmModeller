@@ -16,17 +16,15 @@
         label="Description"
       />
 
-      <v-select
+      <!-- <v-select
         v-model="newObject.parentID"
         :items="allPossibleParents"
         label="Parent object"
         item-text="name"
         item-value="id"
         :rules="[rules.notEmpty]"
-      ></v-select>
+      ></v-select> -->
 
-
-      <v-text-field v-model="newObject.description" label="description" />
       <v-card-actions>
         <v-btn @click="save"> save </v-btn>
         <v-btn @click="$emit('cancel')"> cancel </v-btn>
