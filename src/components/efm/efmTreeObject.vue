@@ -25,9 +25,107 @@
 
       <!-- element card details  -->
       <v-card-title class="text-h5">{{ theObject.name }}</v-card-title>
+      <!-- IW (in case DS) -->
+      <v-chip 
+        v-for="iw in incomingIW" 
+        :key="iw.id"
+      >
+        <v-icon left>
+          mdi-chevron-left
+        </v-icon>
+        iw {{iw.fromName}}; {{iw.iwType}}
+      </v-chip>
+      <v-chip 
+        v-for="iw in outgoingIW" 
+        :key="iw.id"
+      >
+        <v-icon left>
+          mdi-chevron-right
+        </v-icon>
+        iw {{iw.toName}}; {{iw.iwType}}
+      </v-chip>
+      <!-- constraints (in case DS) -->
+      <v-chip 
+        v-for="cID in theObject.constraint_id" 
+        :key="cID"
+        color="purple"
+      >
+        constrained by {{cID}}
+      </v-chip>
       <!-- </router-link> -->
       <v-card-text>{{ theObject.description }}</v-card-text>
       <v-card-actions>
+
+        <!-- plus button speed dial -->
+        <v-speed-dial
+          v-model="fab"
+          direction="right"
+          open-on-hover
+          class="mr-3"
+          v-if="addButtonsObjectSpecific.length > 1"
+        >
+          <template v-slot:activator>
+            <v-btn
+              v-model="fab"
+              fab
+              x-small
+            >
+              <v-icon v-if="fab">
+                mdi-close
+              </v-icon>
+              <v-icon v-else>
+                mdi-plus
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-tooltip 
+            bottom
+            v-for="b in addButtonsObjectSpecific" 
+            :key="b.link"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                fab
+                x-small
+                :to="b.link"
+                @click="handle_function_call(b.function)"
+                v-bind="attrs"
+                v-on="on"
+                :disabled="b.disabled"
+                :color="b.color"
+              >
+                <v-icon v-if="b.icon"> {{ b.icon }} </v-icon>
+                <span v-else>{{b.buttonText}}</span>
+              </v-btn>
+            </template>
+            <span>{{ b.text }}</span>
+          </v-tooltip>
+        </v-speed-dial>
+        <!--  in case only one add object button we don't need a plus -->
+        <v-tooltip 
+            bottom
+            v-else
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                fab
+                x-small
+                :to="addButtonsObjectSpecific[0].link"
+                @click="handle_function_call(addButtonsObjectSpecific[0].function)"
+                v-bind="attrs"
+                v-on="on"
+                class="mr-3"
+                :disabled="addButtonsObjectSpecific[0].disabled"
+                :color="addButtonsObjectSpecific[0].color"
+              >
+                <v-icon v-if="addButtonsObjectSpecific[0].icon"> {{ addButtonsObjectSpecific[0].icon }} </v-icon>
+                <span v-else>{{addButtonsObjectSpecific[0].buttonText}}</span>
+              </v-btn>
+            </template>
+            <span>{{ addButtonsObjectSpecific[0].text }}</span>
+        </v-tooltip>
+
+        <!-- edit buttons -->
         <v-tooltip bottom v-for="(b, index) in editButtons" :key="index">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -71,13 +169,8 @@ export default {
   data() {
     return {
       projectData: null,
+      fab: false,
       editButtons: [
-        {
-          text: "Add new child",
-          icon: "mdi-plus",
-          function: "buttonNewChild",
-          disabled: false,
-        },
         // {
         //   text: "Show object info",
         //   icon: "mdi-badge-account-alert",
@@ -108,6 +201,39 @@ export default {
           disabled: false,
         },
       ],
+      // elements for (+) dropdown:
+      addButtons: [
+        {
+          text: "Add new alternative solution",
+          buttonText: "ds",
+          function: "buttonNewChild",
+          forElements: ['fr'],
+          disabled: false,
+          color:'yellow'
+        },
+        {
+          text: "Add new function",
+          buttonText: "fr",
+          function: "buttonNewChild",
+          forElements: ['ds'],
+          disabled: false,
+          color: 'blue',
+        },
+        {
+          text: "Add new iw",
+          buttonText: "iw",
+          function: "buttonNewIW",
+          forElements: ['ds'],
+          disabled: false,
+        },
+        {
+          text: "Add new constraint",
+          buttonText: "C",
+          function: "buttonNewC",
+          forElements: ['ds'],
+          disabled: true,
+        },
+      ],
       // parameters for gui editing watchers:
       waitingForNewParent: false,
     };
@@ -120,6 +246,9 @@ export default {
       "efmObjectPossibleParents",
       "theSelectedObject",
       "EFMobjectInfo",
+      "efmObjectPossibleIW",
+      "incomingIWofDS",
+      "outgoingIWofDS",
     ]),
 
     theObject() {
@@ -149,7 +278,26 @@ export default {
     objectInfo() {
       return this.EFMobjectInfo(this.objectType, this.objectID)
     },
+    incomingIW() {
+      if (this.objectType == 'ds') {
+        return this.incomingIWofDS(this.objectID)
+      } else {
+        return []
+      }
+  },
+    outgoingIW() {
+      if (this.objectType == 'ds') {
+        return this.outgoingIWofDS(this.objectID)
+      } else {
+        return []
+      }
+    },
 
+    // button filter by objectType
+    addButtonsObjectSpecific() {
+      let sAddButtons = this.addButtons.filter(b => b.forElements.includes(this.objectType))
+      return sAddButtons
+    }
   },
   props: {
     objectType: {
@@ -246,14 +394,19 @@ export default {
       // set watching parameter:
       this.waitingForNewParent = true
     },
+    buttonNewIW() {
+      this.$store.commit('efm/setObjectsToSelect', this.efmObjectPossibleIW(this.objectID))
+      this.$store.commit('efm/setWaitingForIW',({type: this.objectType, id: this.objectID}))
+
+    },
 
     // GUI selection mecahnism
     async selectThis() {
       console.log('selected ' + this.objectType + this.objectID)
       this.$store.commit('efm/objectIsSelected', {type: this.objectType, id: this.objectID})
-      let newParentIsSet = await this.$store.dispatch('efm/setNewParentFromGui', {newParent: this.theObject})
+      let newRelationIsSet = await this.$store.dispatch('efm/setNewRelationFromGui', {newRelation: this.theObject})
       // resetting the selection mode
-      if (newParentIsSet) {
+      if (newRelationIsSet) {
         this.$store.commit('efm/setObjectsToSelect', [])
       }
     },

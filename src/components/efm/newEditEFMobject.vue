@@ -158,11 +158,18 @@ export default {
       if (this.editID) {
         return "Editing " + this.objectInfo.short + ": " + this.newObject.name;
       } else {
-        return "Creating new " + this.objectInfo.short;
+        return "Creating new " + this.objectInfo.short + ' for ' + this.parentObject.name;
       }
     },
     allPossibleParents() {
         return this.efmObjectPossibleParents(this.objectType, this.editID)
+    },
+    parentObject() {
+      if (this.parentID) {
+        return this.getEFMobjectByID(this.objectInfo.parentType, this.parentID)
+      } else {
+        return null
+      }
     }
   },
   mounted() {

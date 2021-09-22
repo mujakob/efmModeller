@@ -99,6 +99,34 @@ const efmStore = {
         parentType: 'ds',
         newParentUrl: 'fr/{id}/rf',
       },
+      iw: {
+        string: "interacts with",
+        objType: "iw",
+        short: "iw",
+        getURL: "iw/{id}",
+        postURL: "iw/new",
+        putURL: "iw/{id}",
+        deleteURL: "iw/{id}",
+        postMutation: "newIW",
+        putMutation: "editIW",
+        deleteMutation: "deleteIW",
+        requiredFields: {
+          name: "name", // API : fieldName
+          fromDS: "parentID",
+          toDS: "targetID"
+        },
+        optionalFields: {
+          iwType: "iwType",
+          treeID: "treeID",
+        },
+        children: [
+          {
+            toDS: "targetID",
+          },
+        ],
+        parentType: 'ds',
+        // newParentUrl: 'fr/{id}/rf',
+      },
       tree: {
         string: "EFM tree",
         objType: "tree",
@@ -128,6 +156,7 @@ const efmStore = {
     objectsToSelect: [], // list of efm objects
     selectedObject: null,
     objectWaitingForNewParent: null, // {type, id}
+    objectWaitingForIW: null, // {type, id}
   },
   getters: {
     // treeList
@@ -246,9 +275,62 @@ const efmStore = {
       // console.log(allPossibleParents)
       allPossibleParents = allPossibleParents.filter(p => !allChildren.includes(p))
       
-      return allPossibleParents
+      return allPossibleParents // list of efm objects
 
     },
+    efmObjectPossibleIW: (state, getters) => (id) => {
+      // returns a list of all DS which the DS with 'id' can create an iw with
+      // i.e. only DS which can possibly be in the same concept
+      // i.e. not in an alternative to this or any parent DS's alternative
+
+      const theObj = getters.getEFMobjectByID('ds', id)
+
+      let parentObj = getters.getEFMobjectByID('fr', theObj.isbID)
+
+      let alternativeDS = []  // list of DS id
+      
+      while (parentObj) { 
+        let directAlternatives = parentObj.is_solved_by_id.filter(i => i != id)
+        alternativeDS = alternativeDS.concat(directAlternatives)
+        const grandParent = getters.getEFMobjectByID('ds', parentObj.rfID)
+        if (!grandParent.is_top_level_DS) {
+          parentObj = getters.getEFMobjectByID('fr', grandParent.isbID)
+        } else {
+          parentObj = null
+        }
+      }
+
+      let possibleForIW = getters.getEFMobjectsByType('ds')
+      console.log(alternativeDS)
+      possibleForIW = possibleForIW.filter(ds => !(alternativeDS.includes(ds.id)))
+
+      return possibleForIW
+    },
+    incomingIWofDS: (state, getters) => (id) => {
+      // returns all iw which have the DS with _id_ as toDS
+      // adds ds names to the objects as toName, fromName
+      let iwList = state.iw.filter(iw => iw.toDsID == id)
+      for (let iw of iwList) {
+        const toDS = getters.getEFMobjectByID('ds', iw.toDsID)
+        const fromDS = getters.getEFMobjectByID('ds', iw.fromDsID)
+        iw.fromName = fromDS.name
+        iw.toName = toDS.name
+      }
+      return iwList
+    },
+    outgoingIWofDS: (state, getters) => (id) => {
+      // returns all iw which have the DS with _id_ as fromDS
+      // adds ds names to the objects as toName, fromName
+      let iwList = state.iw.filter(iw => iw.fromDsID == id)
+      for (let iw of iwList) {
+        const toDS = getters.getEFMobjectByID('ds', iw.toDsID)
+        const fromDS = getters.getEFMobjectByID('ds', iw.fromDsID)
+        iw.fromName = fromDS.name
+        iw.toName = toDS.name
+      }
+      return iwList
+    },
+
     // for GUI based selection of new parents ect
     objectIsToBeSelected: (state, getters) => (type, id) => {
       // returns true/false whether type, id is in the array objectsToSelect
@@ -268,6 +350,24 @@ const efmStore = {
     },
     whoIsWaitingForParent: (state) => {
       return state.objectWaitingForNewParent
+    },
+    whoIsWaitingForIW: (state) => {
+      return state.objectWaitingForIW
+    },
+
+
+    // start of the class based approach, WIP
+    efmObject: () => (type, id) => {
+      
+      class efmObject {
+        constructor(type, id) {
+          this.type = type
+          this.id = id
+        }
+      }
+      const newEFMobject = new efmObject(type, id)
+
+      return newEFMobject
     },
 
     // Concepts
@@ -394,7 +494,11 @@ const efmStore = {
     setWaitingForNewParent(state, object) {
       // object= {type, id}
       state.objectWaitingForNewParent = object
-    }
+    },
+    setWaitingForIW(state, object) {
+      // object = {type, id}
+      state.objectWaitingForIW = object
+    },
   },
   actions: {
     async getTreeList({ commit, dispatch }) {
@@ -616,7 +720,10 @@ const efmStore = {
       }
     },
 
-    async setNewParentFromGui({getters, commit, dispatch}, {newParent}) {
+    async setNewRelationFromGui({getters, commit, dispatch}, {newRelation}) {
+      // sets new relations from the gui selector
+      // newRelation is an efmObject
+      // can be used for parents, iw, .. depending on "who is waiting" 
 
       if (getters.whoIsWaitingForParent) {
         console.log('setting new parent via GUI')
@@ -628,9 +735,9 @@ const efmStore = {
         const objectInfo = getters.EFMobjectInfo(theObj.type, theObj.id)
         const parentType = objectInfo.parentType
 
-        console.log('setting new parents for' + theObj.type + theObj.id + ', parentType: ' + parentType + ', new parent: ' + newParent.name )
+        console.log('setting new parents for' + theObj.type + theObj.id + ', parentType: ' + parentType + ', new parent: ' + newRelation.name )
         
-        let submitData = {query:'newParentID', value: newParent.id}
+        let submitData = {query:'newParentID', value: newRelation.id}
         
         let newParentUrl = objectInfo.newParentUrl
         // dispatch to backend  
@@ -645,15 +752,37 @@ const efmStore = {
         );
 
         // and we have to reset all variables:
-        commit('setWaitingForNewParent', null)
-        commit('objectIsSelected', null)
+        if (newObjData) {
+          commit('setWaitingForNewParent', null)
+          commit('objectIsSelected', null)
+        }
 
-        // update all tree data, since doing it one by one is too complicated:
-        dispatch("updateTree");
+      } else if (getters.whoIsWaitingForIW) {
+        const whoIsWaitingForIW = getters.whoIsWaitingForIW
+        const theOtherEnd = newRelation
+        const submitData = {
+          fromDsID: theOtherEnd.id,
+          toDsID: whoIsWaitingForIW.id,
+          iwType: 'spatial',
+        }
+        let newIW = await dispatch(
+          "apiCall",
+          {
+            url: "efm/" + 'iw/new',
+            objectData: submitData,
+            method: "POST",
+          },
+          { root: true }
+        );
         
-
-        return newObjData
+        // and we have to reset all variables:
+        if (newIW) {
+          commit('setWaitingForIW', null)
+          commit('objectIsSelected', null)
+        }
       }
+      // update all tree data, since doing it one by one is too complicated:
+      dispatch("updateTree");
     }
   },
   modules: {},
@@ -926,7 +1055,7 @@ export default new Vuex.Store({
         };
       } else {
         error = {
-          msg: payload.msg,
+          msg: payload.message,
           component: payload.component,
         };
       }
