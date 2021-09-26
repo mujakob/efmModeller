@@ -34,16 +34,19 @@
         </v-list>
 
         <!-- ADMIN MENU -->
-        <v-list-item-group v-if="getUserScope == 'admin'" style="opacity: 1">
+        <v-list-item-group
+          v-if="getUserScope=='admin'" 
+          style="opacity: 1;"
+        >
           <v-divider />
           <v-list-item class="text-caption"> Admin menu: </v-list-item>
           <v-divider />
-          <v-list-item :to="{ name: 'adminAllUsers' }">
-            Other users
+          <v-list-item :to="{name: 'adminAllUsers'}">
+              Other users
           </v-list-item>
-          <v-list-item :to="{ name: 'adminAllProjects' }">
-            All projects
-          </v-list-item>
+            <v-list-item :to="{name: 'adminAllProjects'}">
+              All projects
+            </v-list-item>
         </v-list-item-group>
       </v-menu>
 
@@ -58,7 +61,9 @@ import settings from "@/settings";
 import { mapGetters } from "vuex";
 
 export default {
-  components: {},
+  components: {
+    appMenu: import("../views/core/Projects.vue")
+  },
   data() {
     return {
       user: null,
@@ -78,7 +83,7 @@ export default {
     // }
   },
   computed: {
-    ...mapGetters(["getUser", "loggedIn", "getUserScope"]),
+    ...mapGetters(["getUser", "loggedIn", 'getUserScope', 'getAppMenu']),
     // loggedIn: function() {
     //     return utils.userLoggedIn()
     // },
