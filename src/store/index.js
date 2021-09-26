@@ -964,6 +964,7 @@ export default new Vuex.Store({
     loading: false, // bool for login loading process, should be reworked
     APIloaded: false, // indicates whether the backend data has been loaded
     apps: [], // which apps are used in this frontend ; filled from backend based on settings
+    projects: [],
   },
   getters: {
     getUser: (state) => {
@@ -1012,12 +1013,15 @@ export default new Vuex.Store({
     isLoading: (state) => {
       return state.loading;
     },
-    APIloaded(state) {
+    APIloaded: (state) => {
       return state.APIloaded;
     },
-    allApps(state) {
+    allApps: (state) => {
       return state.apps;
     },
+    projectList: (state) => {
+      return state.projects
+    }
   },
   mutations: {
     auth_request(state) {
@@ -1111,6 +1115,11 @@ export default new Vuex.Store({
     removeAllApps(state) {
       state.apps = [];
     },
+    setProjects(state, projects) {
+      console.log('setting projects to:')
+      console.log(projects)
+      state.projects = projects
+    }
   },
   actions: {
     async login({ commit }, user) {
@@ -1343,6 +1352,47 @@ export default new Vuex.Store({
         }
       }
     },
+    async fetchProjects({commit, dispatch}) {
+      // fetches all projects of user into store
+      console.log('fetching projects')
+      let projects = await dispatch("apiCall", {
+        url: 'core/projects/',
+        query: [
+          {
+            query: 'segment_length',
+            value: '100'
+          },
+          {
+            query: 'index',
+            value: '0'
+          },
+        ]
+      })
+
+      // this is an EFM call in core; i know it shouldn't be here... but it is!
+      let trees = await dispatch("apiCall", {
+        url: 'efm/trees/'
+      })
+      console.log('trees: ')
+      console.log(trees)
+      
+      if (projects) {
+        // fetching subprojects
+        for (let p of projects) {
+          let subproject = await dispatch("apiCall", {
+            url: 'core/projects/' + p.id + '/subproject',
+          })
+          if (subproject) {
+            p.subprojects = subproject
+            for (let sp of p.subprojects) {
+              sp.tree = trees.find(t => t.subproject_id == sp.id)
+            }
+          }
+        }
+        console.log(projects)
+        commit('setProjects', projects)
+      }
+    }
   },
   modules: {
     efm: efmStore,

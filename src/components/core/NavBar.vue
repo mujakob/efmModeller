@@ -61,9 +61,6 @@ import settings from "@/settings";
 import { mapGetters } from "vuex";
 
 export default {
-  components: {
-    appMenu: import("../views/core/Projects.vue")
-  },
   data() {
     return {
       user: null,
