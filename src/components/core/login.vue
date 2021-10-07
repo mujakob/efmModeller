@@ -77,7 +77,7 @@ export default {
       if (success & this.forwardURL) {
         console.log("forwarding to: " + this.forwardURL);
         this.$router.push(this.forwardURL);
-      } else this.$router.push({ name: "Home" });
+      } else this.$router.push({ name: "userProjects" });
     },
   },
 };

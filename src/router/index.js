@@ -81,7 +81,7 @@ const routes = [
   },
   {
     path: "/project/:treeID",
-    name: "project",
+    name: "efm-project",
     props: true,
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route

@@ -1,11 +1,11 @@
 <template>
   <v-container>
     <!-- <treeDS
-            :dsID="treeInfo.topLvlDSid"
+            :dsID="treeInfo.top_level_ds_id"
         /> -->
     <efm-tree-object
       v-if="treeInfo"
-      :objectID="treeInfo.topLvlDSid"
+      :objectID="treeInfo.top_level_ds_id"
       objectType="ds"
       @newObject="newObject"
       @deleteObject="deleteObject"
@@ -67,7 +67,32 @@ export default {
       this.toDeleteType = data.toDeleteType;
       this.toDeletePopup = true;
     },
+    abortAllActions() {
+      console.log('ABORT')
+
+      // cancelling deletion:
+      this.toDeleteID = null;
+      this.toDeleteType = null;
+      this.toDeletePopup = false
+
+      // cancelling new object menu:
+      this.newObjectEditID = null;
+      this.newObjectParentID = null;
+      this.newObjectType = null;
+      this.newObjectPopup = false;
+
+      // cancelling connections:
+      this.$store.commit('efm/cancelSelection')
+    }
   },
+  mounted() {
+    let self = this; 
+    window.addEventListener('keyup', function(ev) {
+      if (ev.key == 'Escape'){
+        self.abortAllActions();
+      }
+    });
+  }
 };
 </script>
 
