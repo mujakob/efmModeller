@@ -5,6 +5,16 @@ import settings from "@/settings";
 
 Vue.use(Vuex);
 
+const efmApi = "efm/"
+
+function random_s4() {
+    // returns a random 4 digit alphanumeric
+  return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+}
+
+
 const efmStore = {
   namespaced: true,
   state: {
@@ -47,12 +57,12 @@ const efmStore = {
         deleteMutation: "deleteDS",
         requiredFields: {
           name: "name", // API : fieldName
-          isbID: "parentID",
+          isb_id: "parentID",
         },
         optionalFields: {
           description: "description",
-          treeID: "treeID",
-          is_top_level_DS: "is_top_level_DS",
+          tree_id: "tree_id",
+          is_top_level_DS: "is_top_level_ds",
         },
         children: [
           {
@@ -84,11 +94,11 @@ const efmStore = {
         deleteMutation: "deleteFR",
         requiredFields: {
           name: "name", // API : fieldName
-          rfID: "parentID",
+          rf_id: "parentID",
         },
         optionalFields: {
           description: "description",
-          treeID: "treeID",
+          tree_id: "tree_id",
         },
         children: [
           {
@@ -112,16 +122,16 @@ const efmStore = {
         deleteMutation: "deleteIW",
         requiredFields: {
           name: "name", // API : fieldName
-          fromDS: "parentID",
-          toDS: "targetID"
+          from_ds: "parentID",
+          to_ds: "targetID"
         },
         optionalFields: {
-          iwType: "iwType",
-          treeID: "treeID",
+          iwType: "iw_type",
+          treeID: "tree_id",
         },
         children: [
           {
-            toDS: "targetID",
+            to_ds: "targetID",
           },
         ],
         parentType: 'ds',
@@ -146,7 +156,7 @@ const efmStore = {
         },
         children: [
           {
-            list: "topLvlDSid",
+            list: "top_level_ds_id",
             type: "ds",
           },
         ],
@@ -159,6 +169,11 @@ const efmStore = {
     objectWaitingForIW: null, // {type, id}
   },
   getters: {
+    efmProjectApi: (state) => {
+      const native_project_id = state.treeInfo.id
+      let url = efmApi + native_project_id + "/"
+      return url
+    },
     // treeList
     allTrees: (state) => {
       return state.treeList;
@@ -222,7 +237,7 @@ const efmStore = {
             allChildrenList.push({type: c.type, id: cc});
           }
         } else {
-          // in case that c.list is no list but just a single value, e.g. topLvlDSid
+          // in case that c.list is no list but just a single value, e.g. top_level_ds_id
           // console.log('found child' + c.type + c.list + ' of ' + type + id)
           allChildrenList.push({type: c.type, id: c.list});
         }
@@ -311,8 +326,8 @@ const efmStore = {
       // adds ds names to the objects as toName, fromName
       let iwList = state.iw.filter(iw => iw.toDsID == id)
       for (let iw of iwList) {
-        const toDS = getters.getEFMobjectByID('ds', iw.toDsID)
-        const fromDS = getters.getEFMobjectByID('ds', iw.fromDsID)
+        const toDS = getters.getEFMobjectByID('ds', iw.to_ds_id)
+        const fromDS = getters.getEFMobjectByID('ds', iw.from_ds_id)
         iw.fromName = fromDS.name
         iw.toName = toDS.name
       }
@@ -323,8 +338,8 @@ const efmStore = {
       // adds ds names to the objects as toName, fromName
       let iwList = state.iw.filter(iw => iw.fromDsID == id)
       for (let iw of iwList) {
-        const toDS = getters.getEFMobjectByID('ds', iw.toDsID)
-        const fromDS = getters.getEFMobjectByID('ds', iw.fromDsID)
+        const toDS = getters.getEFMobjectByID('ds', iw.to_ds_id)
+        const fromDS = getters.getEFMobjectByID('ds', iw.from_ds_id)
         iw.fromName = fromDS.name
         iw.toName = toDS.name
       }
@@ -383,13 +398,16 @@ const efmStore = {
       // sets the list of all trees in state
       state.treeList = payload;
     },
+    addTree(state,tree) {
+      state.treeList.push = tree
+    },
     setAllEfmObjects(state, theTree) {
       // payload is a tree data object as returned by efm/trees/{id}/data
       state.treeInfo = {
         name: theTree.name,
         description: theTree.description,
         id: theTree.id,
-        topLvlDSid: theTree.topLvlDSid,
+        top_level_ds_id: theTree.top_level_ds_id,
       };
       state.ds = theTree.ds;
       state.fr = theTree.fr;
@@ -499,13 +517,37 @@ const efmStore = {
       // object = {type, id}
       state.objectWaitingForIW = object
     },
+    cancelSelection(state) {
+      state.objectWaitingForIW = null
+      state.objectsToSelect = []
+      state.objectWaitingForNewParent = null
+    }
   },
   actions: {
+    async newTree({commit, dispatch}, {projectID, treeData}) {
+      const newTreeData = {
+        name: treeData.name,
+        description: treeData.description
+      }
+      let theTree = await dispatch(
+        "apiCall",
+        {
+          url: efmApi + projectID + "/newTree",
+          method: "POST",
+          objectData: newTreeData,
+        },
+        { root: true }
+      );
+      if (theTree) {
+        commit('addTree', theTree)
+      } 
+
+    },
     async getTreeList({ commit, dispatch }) {
       let allTrees = await dispatch(
         "apiCall",
         {
-          url: "efm/trees",
+          url: efmApi + "trees",
           method: "GET",
         },
         { root: true }
@@ -521,7 +563,7 @@ const efmStore = {
       let theTree = await dispatch(
         "apiCall",
         {
-          url: "efm/trees/" + treeID + "/data",
+          url: efmApi + "trees/" + treeID + "/data",
           method: "GET",
         },
         { root: true }
@@ -530,6 +572,7 @@ const efmStore = {
       if (!theTree) {
         theTree = [];
       } else {
+        console.log(theTree)
         commit("setAllEfmObjects", theTree);
         commit("goodNews", 'Loaded all elements of "' + theTree.name + '".', {
           root: true,
@@ -549,7 +592,7 @@ const efmStore = {
       let allConcepts = await dispatch(
         "apiCall",
         {
-          url: "efm/trees/" + theTree.id + "/instantiate",
+          url: efmApi + "trees/" + theTree.id + "/instantiate",
           method: "GET",
         },
         { root: true }
@@ -564,6 +607,30 @@ const efmStore = {
         });
       }
     },
+    async deleteTree({getters, commit, dispatch}, {treeID}) {
+      const objType = getters.EFMobjectInfo('tree', treeID)
+      let deletion = await dispatch(
+        "apiCall",
+        {
+          url: efmApi + objType.deleteURL,
+          method: "DELETE",
+        },
+        { root: true }
+      );
+      console.log(deletion);
+      if (deletion) {
+        // commit(objType.deleteMutation, id);
+        commit(
+          "goodNews",
+          {
+            message: "Deleted " + objType.string,
+            timeout: 3000,
+          },
+          { root: true }
+        );
+      }
+      return deletion
+    },
 
     async newEFMobject({ getters, commit, dispatch }, { type, data }) {
       // submits "data" to the right backend point depending on efmObjects / type
@@ -571,6 +638,7 @@ const efmStore = {
       // returns new object or null (if error)
 
       const objType = getters.EFMobjectInfo(type);
+      const efmProjectUrl = getters.efmProjectApi
 
       var newObject = null;
 
@@ -581,7 +649,7 @@ const efmStore = {
         newObject = await dispatch(
           "apiCall",
           {
-            url: "efm/" + objType.postURL,
+            url: efmProjectUrl + objType.postURL,
             method: "POST",
             objectData: data,
           },
@@ -615,6 +683,7 @@ const efmStore = {
       // returns new object or null (if error)
 
       const objType = getters.EFMobjectInfo(type, data.id);
+      const efmProjectUrl = getters.efmProjectApi
 
       let putURL = objType.putURL;
       // replace {id} in url with data.id
@@ -624,7 +693,7 @@ const efmStore = {
       let newObjectData = await dispatch(
         "apiCall",
         {
-          url: "efm/" + objType.putURL,
+          url: efmProjectUrl + objType.putURL,
           method: "PUT",
           objectData: data,
         },
@@ -655,11 +724,12 @@ const efmStore = {
       // returns true/false based on success
 
       const objType = getters.EFMobjectInfo(type, id);
+      const efmProjectUrl = getters.efmProjectApi
 
       let deletion = await dispatch(
         "apiCall",
         {
-          url: "efm/" + objType.deleteURL,
+          url: efmProjectUrl + objType.deleteURL,
           method: "DELETE",
         },
         { root: true }
@@ -693,13 +763,14 @@ const efmStore = {
       // mainly used in edit and delete EFM object actions for chidlren and parents of edited/deleted objects
 
       const objType = getters.EFMobjectInfo(type, id);
+      const efmProjectUrl = getters.efmProjectApi
 
       // let theObjectInState = getters.getEFMobjectByID(type, id)
 
       let theObjectFromDB = await dispatch(
         "apiCall",
         {
-          url: "efm/" + objType.getURL,
+          url: efmProjectUrl + objType.getURL,
           method: "GET",
         },
         { root: true }
@@ -725,6 +796,8 @@ const efmStore = {
       // newRelation is an efmObject
       // can be used for parents, iw, .. depending on "who is waiting" 
 
+      const efmProjectUrl = getters.efmProjectApi
+
       if (getters.whoIsWaitingForParent) {
         console.log('setting new parent via GUI')
 
@@ -744,7 +817,7 @@ const efmStore = {
         let newObjData = await dispatch(
           "apiCall",
           {
-            url: "efm/" + newParentUrl,
+            url: efmProjectUrl + newParentUrl,
             query: [submitData],
             method: "PUT",
           },
@@ -768,7 +841,7 @@ const efmStore = {
         let newIW = await dispatch(
           "apiCall",
           {
-            url: "efm/" + 'iw/new',
+            url: efmProjectUrl + 'iw/new',
             objectData: submitData,
             method: "POST",
           },
@@ -821,72 +894,75 @@ const projectStore = {
     },
   },
   actions: {
-    async fetchProjects({ commit, dispatch }) {
-      // gets all projects (of current user) from API and stores them into store
-
-      // *** TODO *** only fetches 100 projects so far; needs pagination
-      let projects = await dispatch(
-        "apiCall",
-        {
-          url: "core/projects/",
-          method: "GET",
-          query: [
-            {
-              query: "segment_length",
-              value: "100",
-            },
-            {
-              query: "index",
-              value: "0",
-            },
-          ],
-        },
-        { root: true }
-      );
-      // in case error, so it's not "undefined" but empty array
-      if (!projects) {
-        projects = [];
-      }
-      // console.log(projects)
-      commit("addAllProjects", projects);
-    },
-    async newProject({ commit, dispatch }, { projectData }) {
-      var newProject = null;
-      // ***TODO***  doesn't fit API yet
-      // *** need to clear up API definitions first
-
-      // to prevent 422 we rewrite picdata to fit API
-      var projectDataFormatted = {
-        name: projectData.name,
-        // exif: picData.exif
-      };
-
-      newProject = await dispatch(
-        "apiCall",
-        {
-          url: "core/projects/",
-          method: "POST",
-          objectData: projectDataFormatted,
-        },
-        { root: true }
-      );
-
-      if (newProject) {
-        commit("createNewPicture", newProject);
-        commit(
-          "goodNews",
+    async fetchProjects({commit, dispatch}) {
+      // fetches all projects of user into store
+      console.log('fetching projects')
+      let projects = await dispatch("apiCall", {
+        url: 'core/projects/',
+        query: [
           {
-            message: "Created new project " + newProject.name,
-            timeout: 3000,
+            query: 'segment_length',
+            value: '100'
           },
-          { root: true }
-        );
+          {
+            query: 'index',
+            value: '0'
+          },
+        ]
+      })
+
+      // this is an EFM call in core; i know it shouldn't be here... but it is!
+      let trees = await dispatch("apiCall", {
+        url: 'efm/trees/'
+      })
+      console.log('trees: ')
+      console.log(trees)
+      
+      if (projects) {
+        // fetching subprojects
+        for (let p of projects) {
+          let subproject = await dispatch("apiCall", {
+            url: 'core/projects/' + p.id + '/subproject',
+          })
+          if (subproject) {
+            p.subprojects = subproject
+            for (let sp of p.subprojects) {
+              sp.tree = trees.find(t => t.subproject_id == sp.id)
+            }
+          }
+        }
+        console.log(projects)
+        commit("addAllProjects", projects);
+      }
+    },
+    async newProject( {dispatch, commit, rootGetters}, {projectName}) {
+      const currentUser = rootGetters.getUser
+      console.log(currentUser)
+      if (!currentUser) {
+        commit('registerError', {message: "you are not logged in!", component: 'createNewProject'})
+        return false
+      }
+      let access = {}
+      access[currentUser.id] = 4
+
+      let newProjectData =  {
+        name: projectName,
+        participants: [
+          currentUser.id
+        ],
+        participants_access: access,
       }
 
-      return newProject;
+      let newProject = await dispatch("apiCall", {
+        url: "core/projects",
+        method: "POST",
+        objectData: newProjectData,
+      })
+      commit('addProject', newProject)
+      return newProject
     },
     async editProjectName({ commit, dispatch }, { key, projectName }) {
-      // key needs to be submitted seperately to the function bc picdata does not necessarily include it!
+      // key needs to be submitted seperately to the function bc projectdata does not necessarily include it!
 
       let success = await dispatch(
         "apiCall",
@@ -911,29 +987,6 @@ const projectStore = {
       }
       return success;
     },
-    async deleteProject({ commit, dispatch }, { picKey }) {
-      console.log("key to delete: " + picKey);
-      let deletion = await dispatch(
-        "apiCall",
-        {
-          url: "images/" + picKey,
-          method: "DELETE",
-        },
-        { root: true }
-      );
-      if (deletion) {
-        commit("deletePicture", picKey);
-        commit(
-          "goodNews",
-          {
-            message: "Deleted picture ",
-            timeout: 3000,
-          },
-          { root: true }
-        );
-        return true;
-      }
-    },
   },
 };
 
@@ -953,18 +1006,18 @@ export default new Vuex.Store({
     // }
     errors: [], // for centralised error handling
     // {
-    //   msg: String,
-    //   component: string - component name, default ''
+    //   message: String,
+    //   component: string - component name, default 'general'
+    //   id: 4-digit-random-alphanumerical
     // }
-    snack: null, // for centralised "good news" popup
+    goodNews: [], // for centralised "good news" popup
     // {
     //   message: string,
-    //   timeout: Int,
+    //   id: 4-digit-random-alphanumerical
     // }
     loading: false, // bool for login loading process, should be reworked
     APIloaded: false, // indicates whether the backend data has been loaded
     apps: [], // which apps are used in this frontend ; filled from backend based on settings
-    projects: [],
   },
   getters: {
     getUser: (state) => {
@@ -978,17 +1031,17 @@ export default new Vuex.Store({
       // returns true or false
       let deltaT = 30 * 60 * 1000; // time until logout
 
-      if (state.status === "success") {
+      if (state.user) {
         console.log("still logged in");
         return true;
-      } else if (
-        // check if we have localStorage auth
-        localStorage.getItem("token_type") &&
-        localStorage.getItem("access_token") &&
-        localStorage.getItem("loginTime") > Date.now() - deltaT
-      ) {
-        console.log("found local storage auth");
-        return true;
+      // } else if (
+      //   // check if we have localStorage auth
+      //   localStorage.getItem("token_type") &&
+      //   localStorage.getItem("access_token") &&
+      //   localStorage.getItem("loginTime") > Date.now() - deltaT
+      // ) {
+      //   console.log("found local storage auth");
+      //   return true;
       } else {
         console.log("login check failed");
         console.log(localStorage.getItem("token_type"));
@@ -1019,9 +1072,6 @@ export default new Vuex.Store({
     allApps: (state) => {
       return state.apps;
     },
-    projectList: (state) => {
-      return state.projects
-    }
   },
   mutations: {
     auth_request(state) {
@@ -1051,23 +1101,34 @@ export default new Vuex.Store({
     registerError(state, payload) {
       // registers a new error
       // payload either string as error message or object, see states
+      
+      // first generate an ID
+      let errorID = random_s4()
+      while (state.errors.filter(e => e.id == errorID).length) {
+        // generate new one
+        errorID = random_s4()
+      }
+
       var error = {};
       if (typeof payload === String) {
         error = {
-          msg: payload,
-          component: "",
+          message: payload,
+          component: "general",
+          id: errorID
         };
       } else {
         error = {
-          msg: payload.message,
+          message: payload.message,
           component: payload.component,
+          id: errorID
         };
       }
+      console.log('error by ' + error.component + ": " + error.message)
       state.errors.push(error);
     },
-    removeError(state, index) {
+    removeError(state, errorID) {
       // removes errors by array index; used in ErrorMessage.vue to dismiss not only the error but remove it
-      state.errors.splice(index, 1);
+      state.errors = state.errors.filter(e => e.id != errorID)
     },
     clearErrors(state, componentName = "") {
       // use with caution when component = ''
@@ -1076,21 +1137,21 @@ export default new Vuex.Store({
       state.errors = state.errors.filter((e) => e.component != componentName);
     },
     goodNews(state, payload) {
-      let news = null;
-      if (payload.timeout && payload.message) {
-        news = payload;
-      } else if (payload.message) {
-        news = {
-          message: payload.message,
-          timeout: 3000,
-        };
-      } else {
-        news = {
-          message: payload,
-          timeout: 3000,
-        };
+      console.log('good news: ' + payload)
+      // first create ID
+      let newsID = random_s4()
+      while (state.goodNews.filter(e => e.id == newsID).length) {
+        // generate new one
+        newsID = random_s4()
       }
-      state.snack = news;
+      const news = {
+        message: payload,
+        id: newsID,
+      }
+      state.goodNews.push(news);
+    },
+    removeNews(state, newsID) {
+      state.goodNews.filter(n => n.id != newsID);
     },
     startLoading(state) {
       state.loading = true;
@@ -1115,11 +1176,6 @@ export default new Vuex.Store({
     removeAllApps(state) {
       state.apps = [];
     },
-    setProjects(state, projects) {
-      console.log('setting projects to:')
-      console.log(projects)
-      state.projects = projects
-    }
   },
   actions: {
     async login({ commit }, user) {
@@ -1337,6 +1393,7 @@ export default new Vuex.Store({
       commit("stopLoading");
       return returnValue;
     },
+    //////////////// special calls
     async fetchApps({ commit, dispatch }) {
       // Fetches the app info from the backend and stores into store.apps
       for (let a of settings.apps) {
@@ -1352,50 +1409,11 @@ export default new Vuex.Store({
         }
       }
     },
-    async fetchProjects({commit, dispatch}) {
-      // fetches all projects of user into store
-      console.log('fetching projects')
-      let projects = await dispatch("apiCall", {
-        url: 'core/projects/',
-        query: [
-          {
-            query: 'segment_length',
-            value: '100'
-          },
-          {
-            query: 'index',
-            value: '0'
-          },
-        ]
-      })
-
-      // this is an EFM call in core; i know it shouldn't be here... but it is!
-      let trees = await dispatch("apiCall", {
-        url: 'efm/trees/'
-      })
-      console.log('trees: ')
-      console.log(trees)
-      
-      if (projects) {
-        // fetching subprojects
-        for (let p of projects) {
-          let subproject = await dispatch("apiCall", {
-            url: 'core/projects/' + p.id + '/subproject',
-          })
-          if (subproject) {
-            p.subprojects = subproject
-            for (let sp of p.subprojects) {
-              sp.tree = trees.find(t => t.subproject_id == sp.id)
-            }
-          }
-        }
-        console.log(projects)
-        commit('setProjects', projects)
-      }
-    }
+ 
   },
   modules: {
     efm: efmStore,
     project: projectStore,
   },
 });
+ 

@@ -5,8 +5,9 @@
     <v-app-bar-title class="mx-5"> SEDlab </v-app-bar-title>
 
     <v-btn :to="{ name: 'Home' }"> Home </v-btn>
+    <v-btn @click="newError">error</v-btn>
 
-    <!-- User menug and login -->
+    <!-- User menu and login -->
     <span class="ml-auto">
       <v-menu offset-y v-if="loggedIn">
         <template v-slot:activator="{ on, attrs }">
@@ -78,6 +79,9 @@ export default {
     //         this.errors.push(e)
     //     }
     // }
+    newError() {
+      this.$store.commit('registerError', 'test 123 ')
+    }
   },
   computed: {
     ...mapGetters(["getUser", "loggedIn", 'getUserScope', 'getAppMenu']),

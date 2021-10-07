@@ -59,7 +59,7 @@
         <!-- plus button speed dial -->
         <v-speed-dial
           v-model="fab"
-          direction="right"
+          direction="bottom"
           open-on-hover
           class="mr-3"
           v-if="addButtonsObjectSpecific.length > 1"
@@ -147,7 +147,7 @@
     </v-card>
     <ul class="efmSubElements">
       <li v-for="child in children" :key="child">
-        <ds-tree
+        <efm-tree-object
           :objectType="otherType"
           :objectID="child"
           :dna="dna"
@@ -164,7 +164,7 @@
 import { mapGetters } from "vuex";
 
 export default {
-  name: "DsTree",
+  name: "efmTreeObject",
   components: {},
   data() {
     return {
