@@ -3,7 +3,7 @@ Developed to work with SEDbackend [https://github.com/sed-group/sed-backend](htt
 
 Aims to provide a starting point for frontend development inside the SED team
 
-version 0.11
+version 0.2
 
 
 ## adaptions before use:

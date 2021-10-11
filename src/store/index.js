@@ -126,8 +126,8 @@ const efmStore = {
           to_ds: "targetID"
         },
         optionalFields: {
-          iwType: "iw_type",
-          treeID: "tree_id",
+          iw_type: "iw_type",
+          tree_id: "tree_id",
         },
         children: [
           {
@@ -324,7 +324,7 @@ const efmStore = {
     incomingIWofDS: (state, getters) => (id) => {
       // returns all iw which have the DS with _id_ as toDS
       // adds ds names to the objects as toName, fromName
-      let iwList = state.iw.filter(iw => iw.toDsID == id)
+      let iwList = state.iw.filter(iw => iw.to_ds_id == id)
       for (let iw of iwList) {
         const toDS = getters.getEFMobjectByID('ds', iw.to_ds_id)
         const fromDS = getters.getEFMobjectByID('ds', iw.from_ds_id)
@@ -336,7 +336,7 @@ const efmStore = {
     outgoingIWofDS: (state, getters) => (id) => {
       // returns all iw which have the DS with _id_ as fromDS
       // adds ds names to the objects as toName, fromName
-      let iwList = state.iw.filter(iw => iw.fromDsID == id)
+      let iwList = state.iw.filter(iw => iw.from_ds_id == id)
       for (let iw of iwList) {
         const toDS = getters.getEFMobjectByID('ds', iw.to_ds_id)
         const fromDS = getters.getEFMobjectByID('ds', iw.from_ds_id)
@@ -834,9 +834,9 @@ const efmStore = {
         const whoIsWaitingForIW = getters.whoIsWaitingForIW
         const theOtherEnd = newRelation
         const submitData = {
-          fromDsID: theOtherEnd.id,
-          toDsID: whoIsWaitingForIW.id,
-          iwType: 'spatial',
+          from_ds_id: theOtherEnd.id,
+          to_ds_id: whoIsWaitingForIW.id,
+          iw_type: 'spatial',
         }
         let newIW = await dispatch(
           "apiCall",

@@ -3,12 +3,20 @@
     <!-- <treeDS
             :dsID="treeInfo.top_level_ds_id"
         /> -->
+
+
     <efm-tree-object
       v-if="treeInfo"
       :objectID="treeInfo.top_level_ds_id"
       objectType="ds"
       @newObject="newObject"
       @deleteObject="deleteObject"
+    />
+
+    <iw-line
+      v-for="iw in allIW"
+      :key="iw.id"
+      :theIW="iw"
     />
 
     <NewDS
@@ -31,12 +39,14 @@
 <script>
 import { mapGetters } from "vuex";
 import DeleteEFMobject from "../../components/efm/deleteEFMobject.vue";
+// import EfmLines from '../../components/efm/efmLines.vue';
 import EfmTreeObject from "../../components/efm/efmTreeObject.vue";
+import IwLine from '../../components/efm/iwLine.vue';
 import NewDS from "../../components/efm/newEditEFMobject.vue";
 // import treeDS from '../../components/efm/treeDS.vue'
 
 export default {
-  components: { EfmTreeObject, NewDS, DeleteEFMobject },
+  components: { EfmTreeObject, NewDS, DeleteEFMobject, IwLine },
   data() {
     return {
       // for newObject popup:
@@ -53,7 +63,10 @@ export default {
   },
   name: "efmTreeView",
   computed: {
-    ...mapGetters("efm", ["treeInfo"]),
+    ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType"]),
+    allIW() {
+      return this.getEFMobjectsByType('iw')
+    }
   },
   methods: {
     newObject(data) {
@@ -97,6 +110,7 @@ export default {
 </script>
 
 <style>
+
 .efmTree {
   /* min-width: 800px; */
   min-height: 600px;

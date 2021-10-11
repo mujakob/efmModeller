@@ -29,6 +29,7 @@
       <v-chip 
         v-for="iw in incomingIW" 
         :key="iw.id"
+        :id="'iwTo'+iw.id"
       >
         <v-icon left>
           mdi-chevron-left
@@ -38,6 +39,7 @@
       <v-chip 
         v-for="iw in outgoingIW" 
         :key="iw.id"
+        :id="'iwFrom'+iw.id"
       >
         <v-icon left>
           mdi-chevron-right
