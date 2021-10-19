@@ -1,6 +1,11 @@
 <template>
-  <div class="efmWorkingSpace fill-height">
-    <efm-tree-view />
+  <div class="efmWorkingSpace fill-height" id="efmWorkspace">
+    
+    <efm-concepts />
+
+    <efm-tree-view id="efmTreeView"/>
+
+    <efm-details  v-if="objectForDetails"/>
   </div>
 </template>
 
@@ -9,13 +14,17 @@
 import efmTreeView from "@/views/efm/efmTreeView.vue";
 // import Concepts from "@/components/efm/concepts.vue";
 import { mapActions, mapGetters } from "vuex";
+import EfmDetails from './efmDetails.vue';
+import EfmConcepts from './efmConcepts.vue';
 
 export default {
   components: {
     // treeMenu,
     efmTreeView,
     // Concepts
-  },
+ 
+    EfmDetails,
+    EfmConcepts },
 
   name: "efmTree",
   data() {
@@ -39,7 +48,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters("efm", ["treeInfo"]),
+    ...mapGetters("efm", ["treeInfo", "objectForDetails"]),
     ...mapActions("efm", ["getTree"]),
     efmTreeAreaCols: function () {
       console.log("showConcept " + this.showConceptsPane * 2);

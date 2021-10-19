@@ -1,9 +1,8 @@
 <template>
-  <v-container>
+  <v-container id="efmTreeView">
     <!-- <treeDS
             :dsID="treeInfo.top_level_ds_id"
         /> -->
-
 
     <efm-tree-object
       v-if="treeInfo"
@@ -11,12 +10,14 @@
       objectType="ds"
       @newObject="newObject"
       @deleteObject="deleteObject"
+      style="z-index: 10;"
     />
 
-    <iw-line
-      v-for="iw in allIW"
-      :key="iw.id"
-      :theIW="iw"
+    <iw-line 
+      v-for="iw in allIW" 
+      :key="iw.id" 
+      :theIW="iw" 
+      style="z-index: 1;"
     />
 
     <NewDS
@@ -41,7 +42,7 @@ import { mapGetters } from "vuex";
 import DeleteEFMobject from "../../components/efm/deleteEFMobject.vue";
 // import EfmLines from '../../components/efm/efmLines.vue';
 import EfmTreeObject from "../../components/efm/efmTreeObject.vue";
-import IwLine from '../../components/efm/iwLine.vue';
+import IwLine from "../../components/efm/iwLine.vue";
 import NewDS from "../../components/efm/newEditEFMobject.vue";
 // import treeDS from '../../components/efm/treeDS.vue'
 
@@ -65,8 +66,8 @@ export default {
   computed: {
     ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType"]),
     allIW() {
-      return this.getEFMobjectsByType('iw')
-    }
+      return this.getEFMobjectsByType("iw");
+    },
   },
   methods: {
     newObject(data) {
@@ -81,12 +82,12 @@ export default {
       this.toDeletePopup = true;
     },
     abortAllActions() {
-      console.log('ABORT')
+      console.log("ABORT");
 
       // cancelling deletion:
       this.toDeleteID = null;
       this.toDeleteType = null;
-      this.toDeletePopup = false
+      this.toDeletePopup = false;
 
       // cancelling new object menu:
       this.newObjectEditID = null;
@@ -95,22 +96,21 @@ export default {
       this.newObjectPopup = false;
 
       // cancelling connections:
-      this.$store.commit('efm/cancelSelection')
-    }
+      this.$store.commit("efm/cancelSelection");
+    },
   },
   mounted() {
-    let self = this; 
-    window.addEventListener('keyup', function(ev) {
-      if (ev.key == 'Escape'){
+    let self = this;
+    window.addEventListener("keyup", function (ev) {
+      if (ev.key == "Escape") {
         self.abortAllActions();
       }
     });
-  }
+  },
 };
 </script>
 
 <style>
-
 .efmTree {
   /* min-width: 800px; */
   min-height: 600px;

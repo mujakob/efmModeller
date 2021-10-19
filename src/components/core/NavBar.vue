@@ -35,19 +35,16 @@
         </v-list>
 
         <!-- ADMIN MENU -->
-        <v-list-item-group
-          v-if="getUserScope=='admin'" 
-          style="opacity: 1;"
-        >
+        <v-list-item-group v-if="getUserScope == 'admin'" style="opacity: 1">
           <v-divider />
           <v-list-item class="text-caption"> Admin menu: </v-list-item>
           <v-divider />
-          <v-list-item :to="{name: 'adminAllUsers'}">
-              Other users
+          <v-list-item :to="{ name: 'adminAllUsers' }">
+            Other users
           </v-list-item>
-            <v-list-item :to="{name: 'adminAllProjects'}">
-              All projects
-            </v-list-item>
+          <v-list-item :to="{ name: 'adminAllProjects' }">
+            All projects
+          </v-list-item>
         </v-list-item-group>
       </v-menu>
 
@@ -80,11 +77,14 @@ export default {
     //     }
     // }
     newError() {
-      this.$store.commit('registerError', 'test 123 ')
+      this.$store.commit("registerError", "test 123 ");
+    },
+    isLoggedIn() {
+      return this.$store.dispatch('isLoggedIn')
     }
   },
   computed: {
-    ...mapGetters(["getUser", "loggedIn", 'getUserScope', 'getAppMenu']),
+    ...mapGetters(["getUser", "loggedIn", "getUserScope", "getAppMenu"]),
     // loggedIn: function() {
     //     return utils.userLoggedIn()
     // },

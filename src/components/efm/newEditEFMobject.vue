@@ -9,12 +9,9 @@
         v-model="newObject.name"
         label="name"
         :rules="rules.notEmpty"
-      /> 
-      
-      <v-text-field
-        v-model="newObject.description"
-        label="Description"
       />
+
+      <v-text-field v-model="newObject.description" label="Description" />
 
       <!-- <v-select
         v-model="newObject.parentID"
@@ -147,10 +144,10 @@ export default {
   computed: {
     ...mapGetters(["getErrorsOfComponent"]),
     ...mapGetters("efm", [
-        "getEFMobjectByID", 
-        "EFMobjectInfo", 
-        "efmObjectPossibleParents"
-        ]),
+      "getEFMobjectByID",
+      "EFMobjectInfo",
+      "efmObjectPossibleParents",
+    ]),
     objectInfo() {
       return this.EFMobjectInfo(this.objectType);
     },
@@ -158,19 +155,24 @@ export default {
       if (this.editID) {
         return "Editing " + this.objectInfo.short + ": " + this.newObject.name;
       } else {
-        return "Creating new " + this.objectInfo.short + ' for ' + this.parentObject.name;
+        return (
+          "Creating new " +
+          this.objectInfo.short +
+          " for " +
+          this.parentObject.name
+        );
       }
     },
     allPossibleParents() {
-        return this.efmObjectPossibleParents(this.objectType, this.editID)
+      return this.efmObjectPossibleParents(this.objectType, this.editID);
     },
     parentObject() {
       if (this.parentID) {
-        return this.getEFMobjectByID(this.objectInfo.parentType, this.parentID)
+        return this.getEFMobjectByID(this.objectInfo.parentType, this.parentID);
       } else {
-        return null
+        return null;
       }
-    }
+    },
   },
   mounted() {
     this.loadObject();
