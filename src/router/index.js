@@ -1,6 +1,6 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
+import Home from "../views/core/Projects.vue"; //"../views/Home.vue";
 import store from "../store";
 
 Vue.use(VueRouter);
@@ -48,9 +48,6 @@ const routes = [
   {
     path: "/me",
     name: "userAbout",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     meta: { requiresAuth: true },
     component: () =>
       import(/* webpackChunkName: "coreAboutMe" */ "../views/core/AboutMe.vue"),
@@ -58,9 +55,6 @@ const routes = [
   {
     path: "/settings",
     name: "coreSettings",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     meta: { requiresAuth: true },
     component: () =>
       import(
@@ -70,9 +64,6 @@ const routes = [
   {
     path: "/projects",
     name: "userProjects",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     meta: { requiresAuth: true },
     component: () =>
       import(
@@ -83,9 +74,6 @@ const routes = [
     path: "/project/:treeID",
     name: "efm-project",
     props: true,
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     meta: { requiresAuth: true },
     component: () =>
       import(

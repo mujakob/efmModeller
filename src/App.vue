@@ -1,6 +1,6 @@
 <template>
   <v-app class="pt-50">
-      <notifications />
+    <notifications />
     <nav-bar />
 
     <v-main>
@@ -11,7 +11,7 @@
 
 <script>
 import NavBar from "@/components/core/NavBar.vue";
-import Notifications from './components/core/notifications.vue';
+import Notifications from "./components/core/notifications.vue";
 
 export default {
   name: "app",
@@ -22,6 +22,4 @@ export default {
 };
 </script>
 
-<style>
-
-</style>
+<style></style>

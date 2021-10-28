@@ -1,7 +1,39 @@
 <template>
-  <div class="efmWorkingSpace fill-height">
-    <efm-tree-view />
-  </div>
+  <v-row class="fill-height" id="efmWorkspace">
+    <v-col
+      :cols="showConceptPane ? 3 : 1"
+    >
+      <v-tooltip bottom >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          fab
+          x-small
+          @click="showConceptPane = !showConceptPane"
+          v-bind="attrs"
+          v-on="on"
+        >
+          <v-icon v-if="showConceptPane"> mdi-chevron-left </v-icon>
+          <v-icon v-else> mdi-chevron-right </v-icon>
+        </v-btn>
+      </template>
+      <span v-if="showConceptPane">Hide concept pane</span>
+      <span v-else>Show concept pane</span>
+    </v-tooltip>
+
+      <efm-concepts 
+        v-if="showConceptPane"
+      />
+    </v-col>
+
+    <v-col
+      :cols="showConceptPane ? 9 : 11"
+      style="overflow:auto;"
+    >
+      <efm-tree-view id="efmTreeView"/>
+
+      <efm-details style="z-index: 100;" v-if="objectForDetails"/>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
@@ -9,19 +41,23 @@
 import efmTreeView from "@/views/efm/efmTreeView.vue";
 // import Concepts from "@/components/efm/concepts.vue";
 import { mapActions, mapGetters } from "vuex";
+import EfmDetails from './efmDetails.vue';
+import EfmConcepts from './efmConcepts.vue';
 
 export default {
   components: {
     // treeMenu,
     efmTreeView,
     // Concepts
-  },
+ 
+    EfmDetails,
+    EfmConcepts },
 
   name: "efmTree",
   data() {
     return {
       showObjectInfoPane: true,
-      showConceptsPane: false,
+      showConceptPane: false,
       theProject: null,
       errors: [],
       zoom: 1,
@@ -39,7 +75,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters("efm", ["treeInfo"]),
+    ...mapGetters("efm", ["treeInfo", "objectForDetails"]),
     ...mapActions("efm", ["getTree"]),
     efmTreeAreaCols: function () {
       console.log("showConcept " + this.showConceptsPane * 2);

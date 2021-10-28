@@ -41,7 +41,7 @@ export default {
         id: this.toDeleteID,
       });
       if (deleted) {
-        this.$emit("cancel");
+        this.$emit("deleted");
       }
     },
   },

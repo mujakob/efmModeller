@@ -5,15 +5,38 @@ import settings from "@/settings";
 
 Vue.use(Vuex);
 
-const efmApi = "efm/"
+const efmApi = "efm/";
 
 function random_s4() {
-    // returns a random 4 digit alphanumeric
+  // returns a random 4 digit alphanumeric
   return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
+    .toString(16)
+    .substring(1);
 }
 
+const settingsStore = {
+  state: {
+    colors: {     // vuetify colors
+      ds: 'amber',
+      fr: 'blue',
+      iw: 'grey',
+      c: 'deep-purple'
+    },
+    editor: true,
+  },
+  getters: {
+    efmObjectColor: (state) => (objType) => {
+      return state.colors[objType];
+    },
+  },
+  mutations: {
+
+  },
+  actions: {
+
+  },
+  modules: {}
+}
 
 const efmStore = {
   namespaced: true,
@@ -78,8 +101,10 @@ const efmStore = {
           //   type: 'dp'
           // },
         ],
-        parentType: 'fr',
-        newParentUrl: 'ds/{id}/isb',
+        parentType: "fr",
+        parentID: "isb_id",
+        parentString: "solves function",
+        newParentUrl: "ds/{id}/isb",
       },
       fr: {
         string: "Functional Requirement",
@@ -106,8 +131,10 @@ const efmStore = {
             type: "ds",
           },
         ],
-        parentType: 'ds',
-        newParentUrl: 'fr/{id}/rf',
+        parentType: "ds",
+        parentID: "rf_id",
+        parentString: "is required by",
+        newParentUrl: "fr/{id}/rf",
       },
       iw: {
         string: "interacts with",
@@ -123,18 +150,42 @@ const efmStore = {
         requiredFields: {
           name: "name", // API : fieldName
           from_ds: "parentID",
-          to_ds: "targetID"
+          to_ds: "targetID",
         },
         optionalFields: {
-          iwType: "iw_type",
-          treeID: "tree_id",
+          iw_type: "iw_type",
+          tree_id: "tree_id",
         },
         children: [
           {
             to_ds: "targetID",
           },
         ],
-        parentType: 'ds',
+        parentType: "ds",
+        parentString: "is a required function of"
+        // newParentUrl: 'fr/{id}/rf',
+      },
+      c: {
+        string: "constraint",
+        objType: "c",
+        short: "C",
+        getURL: "c/{id}",
+        postURL: "c/new",
+        putURL: "c/{id}",
+        deleteURL: "c/{id}",
+        postMutation: "newC",
+        putMutation: "editC",
+        deleteMutation: "deleteC",
+        requiredFields: {
+          name: "name", // API : fieldName
+          icb_id: "parentID",
+        },
+        optionalFields: {
+          description: "description",
+        },
+        parentType: "ds",
+        parentID: "icb_id",
+        parentString: "constrains"
         // newParentUrl: 'fr/{id}/rf',
       },
       tree: {
@@ -167,12 +218,18 @@ const efmStore = {
     selectedObject: null,
     objectWaitingForNewParent: null, // {type, id}
     objectWaitingForIW: null, // {type, id}
+
+    // details pane:
+    objectForDetails: null,   // {type, id} pair
+
+    // selected concept
+    selectedConcept: null, // id
   },
   getters: {
     efmProjectApi: (state) => {
-      const native_project_id = state.treeInfo.id
-      let url = efmApi + native_project_id + "/"
-      return url
+      const native_project_id = state.treeInfo.id;
+      let url = efmApi + native_project_id + "/";
+      return url;
     },
     // treeList
     allTrees: (state) => {
@@ -195,6 +252,8 @@ const efmStore = {
     iwByID: (state) => (id) => {
       return state.iw.find((ds) => ds.id == id);
     },
+
+    ////////////////////////////////////////
     EFMobjectInfo:
       (state) =>
       (type, id = null) => {
@@ -214,7 +273,7 @@ const efmStore = {
       return state[type].find((obj) => obj.id == id);
     },
     getEFMobjectsByType: (state) => (type) => {
-      return state[type]
+      return state[type];
     },
     efmObjectChildren: (state, getters) => (type, id) => {
       // returns list with type, id of each childobject of an efm object
@@ -232,159 +291,181 @@ const efmStore = {
           // here we iterate through the objects children list
           for (let cc of theObject[c.list]) {
             // c.list contains IDs when backend is set correctly
-            
+
             // console.log('found child ' + c.type + cc + ' of ' + type + id)
-            allChildrenList.push({type: c.type, id: cc});
+            allChildrenList.push({ type: c.type, id: cc });
           }
         } else {
           // in case that c.list is no list but just a single value, e.g. top_level_ds_id
           // console.log('found child' + c.type + c.list + ' of ' + type + id)
-          allChildrenList.push({type: c.type, id: c.list});
+          allChildrenList.push({ type: c.type, id: c.list });
         }
       }
       return allChildrenList;
     },
     efmObjectAllChildrenRecursive: (state, getters) => (type, id) => {
       // console.log('getting all children (recursive) of ' + type + id)
-      let allChildrenList = getters.efmObjectChildren(type, id)
+      let allChildrenList = getters.efmObjectChildren(type, id);
       // console.log('allChildrenList' + type + id)
       // console.log(allChildrenList)
 
-      let returnChildrenList = []
-      
-      for (let c of allChildrenList) {
+      let returnChildrenList = [];
 
+      for (let c of allChildrenList) {
         // console.log('recursing one level deper onto ' + c.type + c.id)
-        let recursiveChildren = getters.efmObjectAllChildrenRecursive(c.type, c.id)
-        returnChildrenList = returnChildrenList.concat(recursiveChildren)
+        let recursiveChildren = getters.efmObjectAllChildrenRecursive(
+          c.type,
+          c.id
+        );
+        returnChildrenList = returnChildrenList.concat(recursiveChildren);
       }
 
-      returnChildrenList = returnChildrenList.concat(allChildrenList)
+      returnChildrenList = returnChildrenList.concat(allChildrenList);
 
       // console.log('returnChilrenList' + type + id)
       // console.log(returnChildrenList)
-      return returnChildrenList
+      return returnChildrenList;
     },
     efmObjectPossibleParents: (state, getters) => (type, id) => {
       // returns a list of possible parent objects,
       // that is all objects of other type ( DS <> FR ) which are not below in the tree
       // returns list of objects
       // console.log('getting all possible parents of ' + type + id)
-    
-      const objInfo = getters.EFMobjectInfo(type, id)
-      
-      let allPossibleParents = getters.getEFMobjectsByType(objInfo.parentType)
 
-      let allChildrenID = getters.efmObjectAllChildrenRecursive(type, id)
+      const objInfo = getters.EFMobjectInfo(type, id);
 
-      let allChildren = [] // rewrite array with objects instead of type:id pairs
+      let allPossibleParents = getters.getEFMobjectsByType(objInfo.parentType);
+
+      let allChildrenID = getters.efmObjectAllChildrenRecursive(type, id);
+
+      let allChildren = []; // rewrite array with objects instead of type:id pairs
       for (let c of allChildrenID) {
         // c[0] = type, c[1] = id
-        if (c.type == objInfo.parentType) { // filter to only include parentType
-          allChildren.push(getters.getEFMobjectByID(c.type, c.id))
-        } 
+        if (c.type == objInfo.parentType) {
+          // filter to only include parentType
+          allChildren.push(getters.getEFMobjectByID(c.type, c.id));
+        }
       }
       // console.log('lists in possibleparent function')
       // console.log(allChildrenID)
       // console.log(allChildren)
       // console.log(allPossibleParents)
-      allPossibleParents = allPossibleParents.filter(p => !allChildren.includes(p))
-      
-      return allPossibleParents // list of efm objects
+      allPossibleParents = allPossibleParents.filter(
+        (p) => !allChildren.includes(p)
+      );
 
+      return allPossibleParents; // list of efm objects
     },
     efmObjectPossibleIW: (state, getters) => (id) => {
       // returns a list of all DS which the DS with 'id' can create an iw with
       // i.e. only DS which can possibly be in the same concept
       // i.e. not in an alternative to this or any parent DS's alternative
 
-      const theObj = getters.getEFMobjectByID('ds', id)
+      const theObj = getters.getEFMobjectByID("ds", id);
 
-      let parentObj = getters.getEFMobjectByID('fr', theObj.isbID)
+      let parentObj = getters.getEFMobjectByID("fr", theObj.isbID);
 
-      let alternativeDS = []  // list of DS id
-      
-      while (parentObj) { 
-        let directAlternatives = parentObj.is_solved_by_id.filter(i => i != id)
-        alternativeDS = alternativeDS.concat(directAlternatives)
-        const grandParent = getters.getEFMobjectByID('ds', parentObj.rfID)
+      let alternativeDS = []; // list of DS id
+
+      while (parentObj) {
+        let directAlternatives = parentObj.is_solved_by_id.filter(
+          (i) => i != id
+        );
+        alternativeDS = alternativeDS.concat(directAlternatives);
+        const grandParent = getters.getEFMobjectByID("ds", parentObj.rfID);
         if (!grandParent.is_top_level_DS) {
-          parentObj = getters.getEFMobjectByID('fr', grandParent.isbID)
+          parentObj = getters.getEFMobjectByID("fr", grandParent.isbID);
         } else {
-          parentObj = null
+          parentObj = null;
         }
       }
 
-      let possibleForIW = getters.getEFMobjectsByType('ds')
-      console.log(alternativeDS)
-      possibleForIW = possibleForIW.filter(ds => !(alternativeDS.includes(ds.id)))
+      let possibleForIW = getters.getEFMobjectsByType("ds");
+      console.log(alternativeDS);
+      possibleForIW = possibleForIW.filter(
+        (ds) => !alternativeDS.includes(ds.id)
+      );
 
-      return possibleForIW
+      return possibleForIW;
+    },
+    efmObjectParent: (state, getters) => (type, id) => {
+      const objInfo = getters.EFMobjectInfo(type, id)
+      const objData = getters.getEFMobjectByID(type, id)
+      let parent = null
+      if (objInfo.parentID) {
+        parent = getters.getEFMobjectByID(objInfo.parentType, objData[objInfo.parentID])
+      }
+      return parent
     },
     incomingIWofDS: (state, getters) => (id) => {
       // returns all iw which have the DS with _id_ as toDS
       // adds ds names to the objects as toName, fromName
-      let iwList = state.iw.filter(iw => iw.toDsID == id)
+      let iwList = state.iw.filter((iw) => iw.to_ds_id == id);
       for (let iw of iwList) {
-        const toDS = getters.getEFMobjectByID('ds', iw.to_ds_id)
-        const fromDS = getters.getEFMobjectByID('ds', iw.from_ds_id)
-        iw.fromName = fromDS.name
-        iw.toName = toDS.name
+        const toDS = getters.getEFMobjectByID("ds", iw.to_ds_id);
+        const fromDS = getters.getEFMobjectByID("ds", iw.from_ds_id);
+        iw.fromName = fromDS.name;
+        iw.toName = toDS.name;
       }
-      return iwList
+      return iwList;
     },
     outgoingIWofDS: (state, getters) => (id) => {
       // returns all iw which have the DS with _id_ as fromDS
       // adds ds names to the objects as toName, fromName
-      let iwList = state.iw.filter(iw => iw.fromDsID == id)
+      let iwList = state.iw.filter((iw) => iw.from_ds_id == id);
       for (let iw of iwList) {
-        const toDS = getters.getEFMobjectByID('ds', iw.to_ds_id)
-        const fromDS = getters.getEFMobjectByID('ds', iw.from_ds_id)
-        iw.fromName = fromDS.name
-        iw.toName = toDS.name
+        const toDS = getters.getEFMobjectByID("ds", iw.to_ds_id);
+        const fromDS = getters.getEFMobjectByID("ds", iw.from_ds_id);
+        iw.fromName = fromDS.name;
+        iw.toName = toDS.name;
       }
-      return iwList
+      return iwList;
+    },
+    efmObjectConstraints: (state) => (type, id) => {
+      if (type == 'ds') {
+        // only useful for DS
+        return state.c.filter(c => c.icb_id == id)
+      } else {
+        return []
+      }
     },
 
     // for GUI based selection of new parents ect
     objectIsToBeSelected: (state, getters) => (type, id) => {
       // returns true/false whether type, id is in the array objectsToSelect
       // console.log('objectIsToBeSelected: ' + type + id)
-      const theObj = getters.getEFMobjectByID(type, id)
-      const isInSelectedObjects = state.objectsToSelect.find(o => o == theObj)
+      const theObj = getters.getEFMobjectByID(type, id);
+      const isInSelectedObjects = state.objectsToSelect.find(
+        (o) => o == theObj
+      );
       // console.log(isInSelectedObjects)
       // console.log(state.objectsToSelect)
       if (isInSelectedObjects) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    theSelectedObject: (state) => {
+      return state.selectedObject;
+    },
+    whoIsWaitingForParent: (state) => {
+      return state.objectWaitingForNewParent;
+    },
+    whoIsWaitingForIW: (state) => {
+      return state.objectWaitingForIW;
+    },
+
+    objectForDetails: (state) => {
+      return state.objectForDetails;
+    },
+    isSelectedForDetails: (state) => (type, id) => {
+      if (state.objectForDetails === {type: type, id: id}) {
         return true
       } else {
         return false
       }
     },
-    theSelectedObject: (state) => {
-      return state.selectedObject
-    },
-    whoIsWaitingForParent: (state) => {
-      return state.objectWaitingForNewParent
-    },
-    whoIsWaitingForIW: (state) => {
-      return state.objectWaitingForIW
-    },
-
-
-    // start of the class based approach, WIP
-    efmObject: () => (type, id) => {
-      
-      class efmObject {
-        constructor(type, id) {
-          this.type = type
-          this.id = id
-        }
-      }
-      const newEFMobject = new efmObject(type, id)
-
-      return newEFMobject
-    },
-
     // Concepts
     allConcepts: (state) => {
       return state.concepts;
@@ -392,14 +473,17 @@ const efmStore = {
     conceptByID: (state) => (id) => {
       return state.concepts.find((c) => c.id == id);
     },
+    selectedConcept: (state) => {
+      return state.concepts.find(c => c.id == state.selectedConcept)
+    }
   },
   mutations: {
     setTreeList(state, payload) {
       // sets the list of all trees in state
       state.treeList = payload;
     },
-    addTree(state,tree) {
-      state.treeList.push = tree
+    addTree(state, tree) {
+      state.treeList.push = tree;
     },
     setAllEfmObjects(state, theTree) {
       // payload is a tree data object as returned by efm/trees/{id}/data
@@ -502,33 +586,41 @@ const efmStore = {
     setObjectsToSelect(state, objectList) {
       // sets the list of to be selected objects to objectList
       // objectList must be  [{type: type, id:id}, ...]
-      state.objectsToSelect = objectList
+      state.objectsToSelect = objectList;
     },
     objectIsSelected(state, object) {
       // sets the selected object to object
       // object is {type, id} pair
-      state.selectedObject = object
+      state.selectedObject = object;
     },
     setWaitingForNewParent(state, object) {
       // object= {type, id}
-      state.objectWaitingForNewParent = object
+      state.objectWaitingForNewParent = object;
     },
     setWaitingForIW(state, object) {
       // object = {type, id}
-      state.objectWaitingForIW = object
+      state.objectWaitingForIW = object;
     },
     cancelSelection(state) {
-      state.objectWaitingForIW = null
-      state.objectsToSelect = []
-      state.objectWaitingForNewParent = null
+      state.objectWaitingForIW = null;
+      state.objectsToSelect = [];
+      state.objectWaitingForNewParent = null;
+    },
+
+    setObjectForDetails(state, object) {
+      state.objectForDetails = object;
+    },
+
+    selectConcept(state, id) {
+      state.selectedConcept = id
     }
   },
   actions: {
-    async newTree({commit, dispatch}, {projectID, treeData}) {
+    async newTree({ commit, dispatch }, { projectID, treeData }) {
       const newTreeData = {
         name: treeData.name,
-        description: treeData.description
-      }
+        description: treeData.description,
+      };
       let theTree = await dispatch(
         "apiCall",
         {
@@ -539,9 +631,8 @@ const efmStore = {
         { root: true }
       );
       if (theTree) {
-        commit('addTree', theTree)
-      } 
-
+        commit("addTree", theTree);
+      }
     },
     async getTreeList({ commit, dispatch }) {
       let allTrees = await dispatch(
@@ -572,7 +663,7 @@ const efmStore = {
       if (!theTree) {
         theTree = [];
       } else {
-        console.log(theTree)
+        console.log(theTree);
         commit("setAllEfmObjects", theTree);
         commit("goodNews", 'Loaded all elements of "' + theTree.name + '".', {
           root: true,
@@ -597,6 +688,7 @@ const efmStore = {
         },
         { root: true }
       );
+      console.log(allConcepts)
       // in case error, so it's not "undefined" but empty array
       if (!allConcepts) {
         allConcepts = [];
@@ -607,8 +699,8 @@ const efmStore = {
         });
       }
     },
-    async deleteTree({getters, commit, dispatch}, {treeID}) {
-      const objType = getters.EFMobjectInfo('tree', treeID)
+    async deleteTree({ getters, commit, dispatch }, { treeID }) {
+      const objType = getters.EFMobjectInfo("tree", treeID);
       let deletion = await dispatch(
         "apiCall",
         {
@@ -629,7 +721,7 @@ const efmStore = {
           { root: true }
         );
       }
-      return deletion
+      return deletion;
     },
 
     async newEFMobject({ getters, commit, dispatch }, { type, data }) {
@@ -638,7 +730,7 @@ const efmStore = {
       // returns new object or null (if error)
 
       const objType = getters.EFMobjectInfo(type);
-      const efmProjectUrl = getters.efmProjectApi
+      const efmProjectUrl = getters.efmProjectApi;
 
       var newObject = null;
 
@@ -683,7 +775,7 @@ const efmStore = {
       // returns new object or null (if error)
 
       const objType = getters.EFMobjectInfo(type, data.id);
-      const efmProjectUrl = getters.efmProjectApi
+      const efmProjectUrl = getters.efmProjectApi;
 
       let putURL = objType.putURL;
       // replace {id} in url with data.id
@@ -724,7 +816,7 @@ const efmStore = {
       // returns true/false based on success
 
       const objType = getters.EFMobjectInfo(type, id);
-      const efmProjectUrl = getters.efmProjectApi
+      const efmProjectUrl = getters.efmProjectApi;
 
       let deletion = await dispatch(
         "apiCall",
@@ -763,7 +855,7 @@ const efmStore = {
       // mainly used in edit and delete EFM object actions for chidlren and parents of edited/deleted objects
 
       const objType = getters.EFMobjectInfo(type, id);
-      const efmProjectUrl = getters.efmProjectApi
+      const efmProjectUrl = getters.efmProjectApi;
 
       // let theObjectInState = getters.getEFMobjectByID(type, id)
 
@@ -791,29 +883,40 @@ const efmStore = {
       }
     },
 
-    async setNewRelationFromGui({getters, commit, dispatch}, {newRelation}) {
+    async setNewRelationFromGui(
+      { getters, commit, dispatch },
+      { newRelation }
+    ) {
       // sets new relations from the gui selector
       // newRelation is an efmObject
-      // can be used for parents, iw, .. depending on "who is waiting" 
+      // can be used for parents, iw, .. depending on "who is waiting"
 
-      const efmProjectUrl = getters.efmProjectApi
+      const efmProjectUrl = getters.efmProjectApi;
 
       if (getters.whoIsWaitingForParent) {
-        console.log('setting new parent via GUI')
+        console.log("setting new parent via GUI");
 
         // fetch who is waiting for the parent
-        const theObj = getters.whoIsWaitingForParent
+        const theObj = getters.whoIsWaitingForParent;
 
         // fetch object info for that
-        const objectInfo = getters.EFMobjectInfo(theObj.type, theObj.id)
-        const parentType = objectInfo.parentType
+        const objectInfo = getters.EFMobjectInfo(theObj.type, theObj.id);
+        const parentType = objectInfo.parentType;
 
-        console.log('setting new parents for' + theObj.type + theObj.id + ', parentType: ' + parentType + ', new parent: ' + newRelation.name )
-        
-        let submitData = {query:'newParentID', value: newRelation.id}
-        
-        let newParentUrl = objectInfo.newParentUrl
-        // dispatch to backend  
+        console.log(
+          "setting new parents for" +
+            theObj.type +
+            theObj.id +
+            ", parentType: " +
+            parentType +
+            ", new parent: " +
+            newRelation.name
+        );
+
+        let submitData = { query: "newParentID", value: newRelation.id };
+
+        let newParentUrl = objectInfo.newParentUrl;
+        // dispatch to backend
         let newObjData = await dispatch(
           "apiCall",
           {
@@ -826,37 +929,82 @@ const efmStore = {
 
         // and we have to reset all variables:
         if (newObjData) {
-          commit('setWaitingForNewParent', null)
-          commit('objectIsSelected', null)
+          commit("setWaitingForNewParent", null);
+          commit("objectIsSelected", null);
         }
-
       } else if (getters.whoIsWaitingForIW) {
-        const whoIsWaitingForIW = getters.whoIsWaitingForIW
-        const theOtherEnd = newRelation
+        const whoIsWaitingForIW = getters.whoIsWaitingForIW;
+        const theOtherEnd = newRelation;
         const submitData = {
-          fromDsID: theOtherEnd.id,
-          toDsID: whoIsWaitingForIW.id,
-          iwType: 'spatial',
-        }
+          from_ds_id: theOtherEnd.id,
+          to_ds_id: whoIsWaitingForIW.id,
+          iw_type: "spatial",
+        };
         let newIW = await dispatch(
           "apiCall",
           {
-            url: efmProjectUrl + 'iw/new',
+            url: efmProjectUrl + "iw/new",
             objectData: submitData,
             method: "POST",
           },
           { root: true }
         );
-        
+
         // and we have to reset all variables:
         if (newIW) {
-          commit('setWaitingForIW', null)
-          commit('objectIsSelected', null)
+          commit("setWaitingForIW", null);
+          commit("objectIsSelected", null);
         }
       }
       // update all tree data, since doing it one by one is too complicated:
       dispatch("updateTree");
-    }
+    },
+
+    // start of the class based approach, WIP
+    efmObject({ getters }, { type, id }) {
+      class efmObject {
+        constructor(type, id) {
+          this.type = type;
+          this.id = id;
+
+          this.objInfo = getters.objectInfo(type, id);
+
+          let objData = getters.getEFMobjectByID(type, id);
+
+          for (const [key, value] of objData) {
+            this[key] = value;
+          }
+        }
+
+        get parent() {
+          if (this.parentID) {
+            return getters.getEFMobjectByID(
+              this.objInfo.parentType,
+              this.parentID
+            );
+          } else {
+            return null;
+          }
+        }
+
+        get children() {
+          if (this.children.list) {
+            let childrenList = [];
+            for (let c of this[this.children.list]) {
+              const child = getters.getEFMobjectByID(this.children.type, c);
+              childrenList.push(child);
+            }
+            return childrenList;
+          } else {
+            return null;
+          }
+        }
+      }
+
+      const newEFMobject = new efmObject(type, id);
+
+      return newEFMobject;
+    },
   },
   modules: {},
 };
@@ -894,72 +1042,73 @@ const projectStore = {
     },
   },
   actions: {
-    async fetchProjects({commit, dispatch}) {
+    async fetchProjects({ commit, dispatch }) {
       // fetches all projects of user into store
-      console.log('fetching projects')
+      console.log("fetching projects");
       let projects = await dispatch("apiCall", {
-        url: 'core/projects/',
+        url: "core/projects/",
         query: [
           {
-            query: 'segment_length',
-            value: '100'
+            query: "segment_length",
+            value: "100",
           },
           {
-            query: 'index',
-            value: '0'
+            query: "index",
+            value: "0",
           },
-        ]
-      })
+        ],
+      });
 
       // this is an EFM call in core; i know it shouldn't be here... but it is!
       let trees = await dispatch("apiCall", {
-        url: 'efm/trees/'
-      })
-      console.log('trees: ')
-      console.log(trees)
-      
+        url: "efm/trees/",
+      });
+      console.log("trees: ");
+      console.log(trees);
+
       if (projects) {
         // fetching subprojects
         for (let p of projects) {
           let subproject = await dispatch("apiCall", {
-            url: 'core/projects/' + p.id + '/subproject',
-          })
+            url: "core/projects/" + p.id + "/subproject",
+          });
           if (subproject) {
-            p.subprojects = subproject
+            p.subprojects = subproject;
             for (let sp of p.subprojects) {
-              sp.tree = trees.find(t => t.subproject_id == sp.id)
+              sp.tree = trees.find((t) => t.subproject_id == sp.id);
             }
           }
         }
-        console.log(projects)
+        console.log(projects);
         commit("addAllProjects", projects);
       }
     },
-    async newProject( {dispatch, commit, rootGetters}, {projectName}) {
-      const currentUser = rootGetters.getUser
-      console.log(currentUser)
+    async newProject({ dispatch, commit, rootGetters }, { projectName }) {
+      const currentUser = rootGetters.getUser;
+      console.log(currentUser);
       if (!currentUser) {
-        commit('registerError', {message: "you are not logged in!", component: 'createNewProject'})
-        return false
+        commit("registerError", {
+          message: "you are not logged in!",
+          component: "createNewProject",
+        });
+        return false;
       }
-      let access = {}
-      access[currentUser.id] = 4
+      let access = {};
+      access[currentUser.id] = 4;
 
-      let newProjectData =  {
+      let newProjectData = {
         name: projectName,
-        participants: [
-          currentUser.id
-        ],
+        participants: [currentUser.id],
         participants_access: access,
-      }
+      };
 
       let newProject = await dispatch("apiCall", {
         url: "core/projects",
         method: "POST",
         objectData: newProjectData,
-      })
-      commit('addProject', newProject)
-      return newProject
+      });
+      commit("addProject", newProject);
+      return newProject;
     },
     async editProjectName({ commit, dispatch }, { key, projectName }) {
       // key needs to be submitted seperately to the function bc projectdata does not necessarily include it!
@@ -994,7 +1143,7 @@ export default new Vuex.Store({
   namspaced: true,
   state: {
     status: "", // login status
-    token: localStorage.getItem("token") || "", // authentication token
+    token: sessionStorage.getItem("token") || "", // authentication token
     user: {}, // user object from API
     // {
     //   "id": 1,
@@ -1034,19 +1183,19 @@ export default new Vuex.Store({
       if (state.user) {
         console.log("still logged in");
         return true;
-      // } else if (
-      //   // check if we have localStorage auth
-      //   localStorage.getItem("token_type") &&
-      //   localStorage.getItem("access_token") &&
-      //   localStorage.getItem("loginTime") > Date.now() - deltaT
-      // ) {
-      //   console.log("found local storage auth");
-      //   return true;
+        // } else if (
+        //   // check if we have sessionStorage auth
+        //   sessionStorage.getItem("token_type") &&
+        //   sessionStorage.getItem("access_token") &&
+        //   sessionStorage.getItem("loginTime") > Date.now() - deltaT
+        // ) {
+        //   console.log("found local storage auth");
+        //   return true;
       } else {
         console.log("login check failed");
-        console.log(localStorage.getItem("token_type"));
-        console.log(localStorage.getItem("access_token"));
-        console.log(localStorage.getItem("loginTime") > Date.now() - deltaT);
+        console.log(sessionStorage.getItem("token_type"));
+        console.log(sessionStorage.getItem("access_token"));
+        console.log(sessionStorage.getItem("loginTime") > Date.now() - deltaT);
         return false;
       }
     },
@@ -1094,19 +1243,19 @@ export default new Vuex.Store({
       // remove user-related objects from store:
       state.apps = [];
       state.user = null;
-      localStorage.removeItem("token_type");
-      localStorage.removeItem("access_token");
+      sessionStorage.removeItem("token_type");
+      sessionStorage.removeItem("access_token");
       console.log("logged out...");
     },
     registerError(state, payload) {
       // registers a new error
       // payload either string as error message or object, see states
-      
+
       // first generate an ID
-      let errorID = random_s4()
-      while (state.errors.filter(e => e.id == errorID).length) {
+      let errorID = random_s4();
+      while (state.errors.filter((e) => e.id == errorID).length) {
         // generate new one
-        errorID = random_s4()
+        errorID = random_s4();
       }
 
       var error = {};
@@ -1114,21 +1263,21 @@ export default new Vuex.Store({
         error = {
           message: payload,
           component: "general",
-          id: errorID
+          id: errorID,
         };
       } else {
         error = {
           message: payload.message,
           component: payload.component,
-          id: errorID
+          id: errorID,
         };
       }
-      console.log('error by ' + error.component + ": " + error.message)
+      console.log("error by " + error.component + ": " + error.message);
       state.errors.push(error);
     },
     removeError(state, errorID) {
       // removes errors by array index; used in ErrorMessage.vue to dismiss not only the error but remove it
-      state.errors = state.errors.filter(e => e.id != errorID)
+      state.errors = state.errors.filter((e) => e.id != errorID);
     },
     clearErrors(state, componentName = "") {
       // use with caution when component = ''
@@ -1137,21 +1286,21 @@ export default new Vuex.Store({
       state.errors = state.errors.filter((e) => e.component != componentName);
     },
     goodNews(state, payload) {
-      console.log('good news: ' + payload)
+      console.log("good news: " + payload);
       // first create ID
-      let newsID = random_s4()
-      while (state.goodNews.filter(e => e.id == newsID).length) {
+      let newsID = random_s4();
+      while (state.goodNews.filter((e) => e.id == newsID).length) {
         // generate new one
-        newsID = random_s4()
+        newsID = random_s4();
       }
       const news = {
         message: payload,
         id: newsID,
-      }
+      };
       state.goodNews.push(news);
     },
     removeNews(state, newsID) {
-      state.goodNews.filter(n => n.id != newsID);
+      state.goodNews.filter((n) => n.id != newsID);
     },
     startLoading(state) {
       state.loading = true;
@@ -1212,9 +1361,9 @@ export default new Vuex.Store({
             access_token: data.access_token,
             token_type: data.token_type,
           };
-          localStorage.setItem("access_token", token["access_token"]);
-          localStorage.setItem("token_type", token["token_type"]);
-          localStorage.setItem("loginTime", Date.now());
+          sessionStorage.setItem("access_token", token["access_token"]);
+          sessionStorage.setItem("token_type", token["token_type"]);
+          sessionStorage.setItem("loginTime", Date.now());
 
           // user = getters.getUser
 
@@ -1222,7 +1371,7 @@ export default new Vuex.Store({
             headers: {
               "Content-Type": "application/json; charset=UTF-8",
               Authorization:
-                localStorage.token_type + " " + localStorage.access_token,
+                sessionStorage.token_type + " " + sessionStorage.access_token,
             },
           });
           const userFromDB = await userRequest.json();
@@ -1262,6 +1411,26 @@ export default new Vuex.Store({
         // throw "server error; please try again later";
       }
       commit("stopLoading");
+    },
+    async isLoggedIn({getters, commit, dispatch}) {
+      // returns true or false
+      let deltaT = 30 * 60 * 1000; // time until logout, 30mins
+      if (
+        // check if we have sessionStorage auth
+        sessionStorage.getItem("token_type") &&
+        sessionStorage.getItem("access_token") &&
+        sessionStorage.getItem("loginTime") > Date.now() - deltaT
+      ) {
+        console.log("found local storage auth");
+
+        // check if we have to re-set user:
+        if (!getters.getUser) {
+          dispatch('fetchUserMe')
+        }
+        return true;
+      } else {
+        commit('logout')
+      }
     },
     async fetchUserMe({ getters, commit, dispatch }) {
       // gets the userdata and stores into store
@@ -1310,7 +1479,7 @@ export default new Vuex.Store({
           console.log("logged in, adding auth");
           messageHeader = Object.assign(messageHeader, {
             Authorization:
-              localStorage.token_type + " " + localStorage.access_token,
+              sessionStorage.token_type + " " + sessionStorage.access_token,
           });
         }
         if (method != "GET") {
@@ -1355,34 +1524,42 @@ export default new Vuex.Store({
             // in case of e.g. deletion where there is only 200 as response
             returnValue = true;
           }
-        } else if (response.status === 401) {
-          // commit("logout");
-          commit("registerError", {
-            message:
-              "You are not logged in or don't have permission for this function",
-            component: "APIcall",
-          });
-        } else if (response.status === 404) {
-          commit("registerError", {
-            message: "Element couold not be found",
-            component: "APIcall",
-          });
-          returnValue = 404; // identifier for a 404
         } else {
+          returnValue = await response.json();
+          console.log(returnValue)
           commit("registerError", {
-            message:
-              "Error " +
-              response.status +
-              ' Could not perform API call for: url="' +
-              url +
-              '", method="' +
-              method +
-              '", data="' +
-              JSON.stringify(objectData) +
-              '".',
-            component: "APIcall",
-          });
+            message: "Error " + response.status + " from backend: " + returnValue.detail,
+            component: "APIcall", 
+          })
         }
+        // } else if (response.status === 401) {
+        //   // commit("logout");
+        //   commit("registerError", {
+        //     message:
+        //       "You are not logged in or don't have permission for this function",
+        //     component: "APIcall",
+        //   });
+        // } else if (response.status === 404) {
+        //   commit("registerError", {
+        //     message: "Element couold not be found",
+        //     component: "APIcall",
+        //   });
+        //   returnValue = 404; // identifier for a 404
+        // } else {
+        //   commit("registerError", {
+        //     message:
+        //       "Error " +
+        //       response.status +
+        //       ' Could not perform API call for: url="' +
+        //       url +
+        //       '", method="' +
+        //       method +
+        //       '", data="' +
+        //       JSON.stringify(objectData) +
+        //       '".',
+        //     component: "APIcall",
+        //   });
+        // }
       } catch (error) {
         console.error(error);
         commit("registerError", {
@@ -1409,11 +1586,10 @@ export default new Vuex.Store({
         }
       }
     },
- 
   },
   modules: {
     efm: efmStore,
     project: projectStore,
+    settings: settingsStore,
   },
 });
- 
