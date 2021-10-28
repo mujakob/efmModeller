@@ -28,7 +28,7 @@
       <!-- element card details  -->
       <v-card-title 
         class="text-h5"
-        @click="setForDetails"
+        @click="setForDetails(objectType, objectID)"
         :class="objectColor"
       >
         {{ theObject.name }}
@@ -157,6 +157,7 @@ export default {
       "outgoingIWofDS",
       "isSelectedForDetails",
       "efmObjectConstraints",
+      "selectedConcept",
     ]),
 
     ...mapGetters(["efmObjectColor",]),
@@ -167,10 +168,22 @@ export default {
       return this.getEFMobjectByID(this.objectType, this.objectID);
     },
     children() {
+      // returns id of children as list
       if (this.objectType === "ds") {
+        // returning FR objects
         return this.theObject.requires_functions_id;
       } else if (this.objectType === "fr") {
-        return this.theObject.is_solved_by_id;
+        // returning DS objects
+        let children = this.theObject.is_solved_by_id;
+        
+        if (this.selectedConcept){
+          // in case concept is loaded we filter by dna:
+          const dna =  this.selectedConcept.dna
+          console.log("dna: " + dna)
+          children = children.filter(child => dna.includes(child));
+        }
+        return children
+        
       } else {
         return "";
       }

@@ -29,7 +29,7 @@
         <v-icon> mdi-lightbulb-group-outline </v-icon>
         reload concepts
       </v-btn>
-      <v-btn v-on:click="$emit('reloadProject')" class="mb-3">
+      <v-btn v-on:click="loadConcept(null)" class="mb-3">
         <v-icon> mdi-book-sync </v-icon>
         reload project tree
       </v-btn>
@@ -43,10 +43,10 @@
             <p class="text-caption">Concept ID: {{ concept.id }}</p>
             <v-row>
               <v-col class="shrink">
-                <v-btn small>edit</v-btn>
+                <v-btn small disabled>edit</v-btn>
               </v-col>
               <v-col class="shrink">
-                <v-btn small v-on:click="$emit('loadConcept', concept.id)">
+                <v-btn small @click="loadConcept(concept.id)">
                   load
                 </v-btn>
               </v-col>
@@ -78,6 +78,10 @@ export default {
   methods: {
     async reloadConcepts() {
       this.$store.dispatch('efm/getConcepts')
+    },
+    loadConcept(id){
+      console.log(id)
+      this.$store.commit("efm/selectConcept", id)
     }
   },
   mounted() {}

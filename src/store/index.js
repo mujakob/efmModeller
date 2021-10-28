@@ -221,6 +221,9 @@ const efmStore = {
 
     // details pane:
     objectForDetails: null,   // {type, id} pair
+
+    // selected concept
+    selectedConcept: null, // id
   },
   getters: {
     efmProjectApi: (state) => {
@@ -470,6 +473,9 @@ const efmStore = {
     conceptByID: (state) => (id) => {
       return state.concepts.find((c) => c.id == id);
     },
+    selectedConcept: (state) => {
+      return state.concepts.find(c => c.id == state.selectedConcept)
+    }
   },
   mutations: {
     setTreeList(state, payload) {
@@ -604,6 +610,10 @@ const efmStore = {
     setObjectForDetails(state, object) {
       state.objectForDetails = object;
     },
+
+    selectConcept(state, id) {
+      state.selectedConcept = id
+    }
   },
   actions: {
     async newTree({ commit, dispatch }, { projectID, treeData }) {
@@ -678,6 +688,7 @@ const efmStore = {
         },
         { root: true }
       );
+      console.log(allConcepts)
       // in case error, so it's not "undefined" but empty array
       if (!allConcepts) {
         allConcepts = [];
