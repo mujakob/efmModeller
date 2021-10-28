@@ -52,84 +52,14 @@
       </v-chip>
       <!-- </router-link> -->
       <v-card-text>{{ theObject.description }}</v-card-text>
-      <v-card-actions>
-        <!-- plus button speed dial -->
-        <v-speed-dial
-          v-model="fab"
-          direction="bottom"
-          open-on-hover
-          class="mr-3"
-          v-if="addButtonsObjectSpecific.length > 1"
-        >
-          <template v-slot:activator>
-            <v-btn v-model="fab" fab x-small>
-              <v-icon v-if="fab"> mdi-close </v-icon>
-              <v-icon v-else> mdi-plus </v-icon>
-            </v-btn>
-          </template>
-          <v-tooltip bottom v-for="b in addButtonsObjectSpecific" :key="b.link">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                fab
-                x-small
-                :to="b.link"
-                @click="handle_function_call(b.function)"
-                v-bind="attrs"
-                v-on="on"
-                :disabled="b.disabled"
-                :color="b.color"
-              >
-                <v-icon v-if="b.icon"> {{ b.icon }} </v-icon>
-                <span v-else>{{ b.buttonText }}</span>
-              </v-btn>
-            </template>
-            <span>{{ b.text }}</span>
-          </v-tooltip>
-        </v-speed-dial>
-        <!--  in case only one add object button we don't need a plus -->
-        <v-tooltip bottom v-else>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              fab
-              x-small
-              :to="addButtonsObjectSpecific[0].link"
-              @click="
-                handle_function_call(addButtonsObjectSpecific[0].function)
-              "
-              v-bind="attrs"
-              v-on="on"
-              class="mr-3"
-              :disabled="addButtonsObjectSpecific[0].disabled"
-              :color="addButtonsObjectSpecific[0].color"
-            >
-              <v-icon v-if="addButtonsObjectSpecific[0].icon">
-                {{ addButtonsObjectSpecific[0].icon }}
-              </v-icon>
-              <span v-else>{{ addButtonsObjectSpecific[0].buttonText }}</span>
-            </v-btn>
-          </template>
-          <span>{{ addButtonsObjectSpecific[0].text }}</span>
-        </v-tooltip>
-
-        <!-- edit buttons -->
-        <v-tooltip bottom v-for="(b, index) in editButtons" :key="index">
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              fab
-              x-small
-              :to="b.link"
-              @click="handle_function_call(b.function)"
-              v-bind="attrs"
-              v-on="on"
-              class="mr-3"
-              :disabled="b.disabled"
-            >
-              <v-icon> {{ b.icon }} </v-icon>
-            </v-btn>
-          </template>
-          <span>{{ b.text }}</span>
-        </v-tooltip>
-      </v-card-actions>
+      <!-- <v-card-actions> -->
+        <editing-menu 
+          :objectID="objectID" 
+          :objectType="objectType"
+          @newObject="newObject"
+          @deleteObject="deleteObject"
+        />
+      <!-- </v-card-actions> -->
     </v-card>
     <ul class="efmSubElements transparent">
       <li v-for="child in children" :key="child" class="transparent">
@@ -148,78 +78,15 @@
 <script>
 // import utils from "@/utils";
 import { mapGetters, mapMutations } from "vuex";
+import EditingMenu from './editingMenu.vue';
 
 export default {
   name: "efmTreeObject",
-  components: {},
+  components: {EditingMenu},
   data() {
     return {
       projectData: null,
-      fab: false,
-      editButtons: [
-        // {
-        //   text: "Show object info",
-        //   icon: "mdi-badge-account-alert",
-        //   link: {
-        //     name: this.objectType + "Detail",
-        //     params: { objID: this.objectID }
-        //   },
-        //   disabled: true,
-        // },
-        {
-          text: "Move object to new parent",
-          icon: "mdi-source-pull",
-          function: "buttonSelectNewParent",
-          disabled: false,
-        },
-        {
-          text: "Edit object info",
-          icon: "mdi-pencil",
-          link: null,
-          function: "buttonEditSelf",
-          disabled: false,
-        },
-        {
-          text: "Delete this object",
-          icon: "mdi-delete",
-          link: null,
-          function: "buttonDeleteSelf",
-          disabled: false,
-        },
-      ],
-      // elements for (+) dropdown:
-      addButtons: [
-        {
-          text: "Add new alternative solution",
-          buttonText: "ds",
-          function: "buttonNewChild",
-          forElements: ["fr"],
-          disabled: false,
-          color: "yellow",
-        },
-        {
-          text: "Add new function",
-          buttonText: "fr",
-          function: "buttonNewChild",
-          forElements: ["ds"],
-          disabled: false,
-          color: "blue",
-        },
-        {
-          text: "Add new iw",
-          buttonText: "iw",
-          function: "buttonNewIW",
-          forElements: ["ds"],
-          disabled: false,
-        },
-        {
-          text: "Add new constraint",
-          buttonText: "C",
-          function: "buttonNewC",
-          forElements: ["ds"],
-          disabled: true,
-        },
-      ],
+      
       // parameters for gui editing watchers:
       waitingForNewParent: false,
     };
@@ -229,7 +96,6 @@ export default {
       "getEFMobjectByID",
       "frByID",
       "objectIsToBeSelected",
-      "efmObjectPossibleParents",
       "theSelectedObject",
       "EFMobjectInfo",
       "efmObjectPossibleIW",
@@ -281,13 +147,6 @@ export default {
       }
     },
 
-    // button filter by objectType
-    addButtonsObjectSpecific() {
-      let sAddButtons = this.addButtons.filter((b) =>
-        b.forElements.includes(this.objectType)
-      );
-      return sAddButtons;
-    },
   },
   props: {
     objectType: {
@@ -321,51 +180,7 @@ export default {
       });
     },
 
-    // helper function for buttons (to enable dynamic button generation with functions)
-    handle_function_call(function_name) {
-      this[function_name]();
-    },
-    buttonNewChild() {
-      this.$emit("newObject", {
-        objectType: this.otherType,
-        parentID: this.objectID,
-      });
-    },
-    buttonEditSelf() {
-      this.$emit("newObject", {
-        objectType: this.objectType,
-        editID: this.objectID,
-      });
-    },
-    buttonDeleteSelf() {
-      this.$emit("deleteObject", {
-        toDeleteType: this.objectType,
-        toDeleteID: this.objectID,
-      });
-    },
-    buttonSelectNewParent() {
-      // first we set the objects to select in the gui to possible parents
-      this.$store.commit(
-        "efm/setObjectsToSelect",
-        this.efmObjectPossibleParents(this.objectType, this.objectID)
-      );
-      this.$store.commit("efm/setWaitingForNewParent", {
-        type: this.objectType,
-        id: this.objectID,
-      });
-      // set watching parameter:
-      this.waitingForNewParent = true;
-    },
-    buttonNewIW() {
-      this.$store.commit(
-        "efm/setObjectsToSelect",
-        this.efmObjectPossibleIW(this.objectID)
-      );
-      this.$store.commit("efm/setWaitingForIW", {
-        type: this.objectType,
-        id: this.objectID,
-      });
-    },
+    
 
     // GUI selection mecahnism
     async selectThis() {

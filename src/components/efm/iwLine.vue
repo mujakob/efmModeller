@@ -84,18 +84,18 @@ export default {
       // const endX = this.curveLength
       // const endY = Math.abs(this.iwStartPos.y - this.iwEndPos.y)
       const controlY = this.curveHeight;
-      console.log(
-        "startX" +
-          this.startX +
-          " startY " +
-          this.startY +
-          " endX " +
-          this.endX +
-          " endY " +
-          this.endY +
-          " controlY" +
-          controlY
-      );
+      // console.log(
+      //   "startX" +
+      //     this.startX +
+      //     " startY " +
+      //     this.startY +
+      //     " endX " +
+      //     this.endX +
+      //     " endY " +
+      //     this.endY +
+      //     " controlY" +
+      //     controlY
+      // );
       // corrections for arrow display:
       let endX_corrected = this.endX + this.arrowWidth / 2;
       let endY_corrected = this.endY + this.arrowHeight;

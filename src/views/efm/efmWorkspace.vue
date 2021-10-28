@@ -5,7 +5,7 @@
 
     <efm-tree-view id="efmTreeView"/>
 
-    <efm-details  v-if="objectForDetails"/>
+    <efm-details style="z-index: 100;" v-if="objectForDetails"/>
   </div>
 </template>
 

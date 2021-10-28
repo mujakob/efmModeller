@@ -33,6 +33,7 @@
       :toDeleteID="toDeleteID"
       :toDeleteType="toDeleteType"
       @cancel="toDeletePopup = false"
+      @deleted="toDeletePopup = false"
     />
   </v-container>
 </template>
@@ -115,12 +116,6 @@ export default {
   /* min-width: 800px; */
   min-height: 600px;
   overflow: auto;
-}
-.loadingicon {
-  width: 100px;
-  height: 100px;
-  justify-content: center;
-  align-content: center;
 }
 
 .efmSubElements {

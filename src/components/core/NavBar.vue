@@ -99,3 +99,9 @@ export default {
   },
 };
 </script>
+
+<style >
+.v-app-bar {
+  z-index: 102 !important;
+}
+</style>

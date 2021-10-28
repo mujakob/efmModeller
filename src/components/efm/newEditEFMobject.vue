@@ -153,7 +153,10 @@ export default {
     },
     titleText() {
       if (this.editID) {
-        return "Editing " + this.objectInfo.short + ": " + this.newObject.name;
+        return "Editing " + 
+          this.objectInfo.short + 
+          ": " + 
+          this.newObject.name;
       } else {
         return (
           "Creating new " +

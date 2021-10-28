@@ -14,6 +14,29 @@ function random_s4() {
     .substring(1);
 }
 
+const settingsStore = {
+  state: {
+    colors: {
+      ds: 'yellow',
+      fr: 'blue',
+      iw: 'grey',
+      c: 'purple'
+    },
+    editor: true,
+  },
+  getters: {
+    efmObjectColor: (state) => (objType) => {
+      return state.colors[objType];
+    },
+  },
+  mutations: {
+
+  },
+  actions: {
+
+  },
+  modules: {}
+}
 
 const efmStore = {
   namespaced: true,
@@ -80,6 +103,7 @@ const efmStore = {
         ],
         parentType: "fr",
         parentID: "isb_id",
+        parentString: "solves function",
         newParentUrl: "ds/{id}/isb",
       },
       fr: {
@@ -109,6 +133,7 @@ const efmStore = {
         ],
         parentType: "ds",
         parentID: "rf_id",
+        parentString: "is required by",
         newParentUrl: "fr/{id}/rf",
       },
       iw: {
@@ -137,12 +162,13 @@ const efmStore = {
           },
         ],
         parentType: "ds",
+        parentString: "is a required function of"
         // newParentUrl: 'fr/{id}/rf',
       },
       c: {
         string: "constraint",
         objType: "c",
-        short: "c",
+        short: "C",
         getURL: "c/{id}",
         postURL: "c/new",
         putURL: "c/{id}",
@@ -159,6 +185,7 @@ const efmStore = {
         },
         parentType: "ds",
         parentID: "icb_id",
+        parentString: "constrains"
         // newParentUrl: 'fr/{id}/rf',
       },
       tree: {
@@ -1530,5 +1557,6 @@ export default new Vuex.Store({
   modules: {
     efm: efmStore,
     project: projectStore,
+    settings: settingsStore,
   },
 });
