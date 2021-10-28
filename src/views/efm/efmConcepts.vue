@@ -1,28 +1,12 @@
 <template>
   <div
-    style="max-width:30%; float:left; height:100%;"
+    style="height:100%;"
   >
-     <v-tooltip bottom >
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          fab
-          x-small
-          @click="showConceptPane = !showConceptPane"
-          v-bind="attrs"
-          v-on="on"
-        >
-          <v-icon v-if="showConceptPane"> mdi-chevron-left </v-icon>
-          <v-icon v-else> mdi-chevron-right </v-icon>
-        </v-btn>
-      </template>
-      <span v-if="showConceptPane">Hide concept pane</span>
-      <span v-else>Show concept pane</span>
-    </v-tooltip>
+     
       
     <v-card 
       class="fill-height pa-3"
       elevation="4"
-      v-if="showConceptPane"
       fill-height
     >
       <v-btn v-on:click="reloadConcepts" class="mb-3">

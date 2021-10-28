@@ -1,12 +1,39 @@
 <template>
-  <div class="efmWorkingSpace fill-height" id="efmWorkspace">
-    
-    <efm-concepts />
+  <v-row class="fill-height" id="efmWorkspace">
+    <v-col
+      :cols="showConceptPane ? 3 : 1"
+    >
+      <v-tooltip bottom >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          fab
+          x-small
+          @click="showConceptPane = !showConceptPane"
+          v-bind="attrs"
+          v-on="on"
+        >
+          <v-icon v-if="showConceptPane"> mdi-chevron-left </v-icon>
+          <v-icon v-else> mdi-chevron-right </v-icon>
+        </v-btn>
+      </template>
+      <span v-if="showConceptPane">Hide concept pane</span>
+      <span v-else>Show concept pane</span>
+    </v-tooltip>
 
-    <efm-tree-view id="efmTreeView"/>
+      <efm-concepts 
+        v-if="showConceptPane"
+      />
+    </v-col>
 
-    <efm-details style="z-index: 100;" v-if="objectForDetails"/>
-  </div>
+    <v-col
+      :cols="showConceptPane ? 9 : 11"
+      style="overflow:auto;"
+    >
+      <efm-tree-view id="efmTreeView"/>
+
+      <efm-details style="z-index: 100;" v-if="objectForDetails"/>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
@@ -30,7 +57,7 @@ export default {
   data() {
     return {
       showObjectInfoPane: true,
-      showConceptsPane: false,
+      showConceptPane: false,
       theProject: null,
       errors: [],
       zoom: 1,
