@@ -5,7 +5,7 @@
     class="efmElement transparent"
   >
     <v-card 
-      :class="[objectType, isToBeSelected ? 'toBeSelected' : '']"
+      :class="[isToBeSelected ? 'toBeSelected' : '', isSelected ? 'selected': '',]"
       style="z-index: 10;"
     >
       <!-- <router-link :to="{
@@ -29,9 +29,61 @@
       <v-card-title 
         class="text-h5"
         @click="setForDetails"
+        :class="objectColor"
       >
         {{ theObject.name }}
       </v-card-title>
+       <!-- constraints -->
+      <v-speed-dial
+        v-model="showConstraints"
+        direction="top"
+        open-on-hover
+        class="mr-3"
+        v-if="constraints.length"
+      >
+        <template v-slot:activator>
+          <v-chip
+            class="ma-2"
+            :color="constraintColor"
+            text-color="white"
+          >
+            <v-avatar
+              left
+              :class="[constraintColor, 'darken-4']"
+            >
+              {{constraints.length}}
+            </v-avatar>
+            constraints
+          </v-chip>
+        </template>
+        <v-chip
+          class="ma-2"
+          :color="constraintColor"
+          text-color="white"
+          v-for="c in constraints"
+          :key="c.id"
+          @click="setForDetails('c', c.id)"
+        >
+         {{c.name}}
+        </v-chip>
+      </v-speed-dial>
+
+      <!-- <v-chip
+        v-if="constraints.length"
+        class="ma-2"
+        :color="constraintColor"
+        text-color="white"
+        @click="showConstraints = !showConstraints"
+      >
+        <v-avatar
+          left
+          :class="[constraintColor, 'darken-4']"
+        >
+          {{constraints.length}}
+        </v-avatar>
+        constraints
+      </v-chip> -->
+
       <!-- IW (in case DS) as connectors for iw arrows-->
       <div 
         v-for="iw in incomingIW" 
@@ -89,6 +141,9 @@ export default {
       
       // parameters for gui editing watchers:
       waitingForNewParent: false,
+
+      // show/hide constraints:
+      showConstraints: false,
     };
   },
   computed: {
@@ -98,10 +153,13 @@ export default {
       "objectIsToBeSelected",
       "theSelectedObject",
       "EFMobjectInfo",
-      "efmObjectPossibleIW",
       "incomingIWofDS",
       "outgoingIWofDS",
+      "isSelectedForDetails",
+      "efmObjectConstraints",
     ]),
+
+    ...mapGetters(["efmObjectColor",]),
     
     ...mapMutations('efm', ['setObjectForDetails']),
 
@@ -146,7 +204,23 @@ export default {
         return [];
       }
     },
-
+    constraints() {
+      return this.efmObjectConstraints(this.objectType, this.objectID)
+    },
+    // selection
+    isSelected() {
+      return this.isSelectedForDetails(this.objectType, this.objectID)
+    },
+    // COLORS
+    objectColor() {
+      return this.efmObjectColor(this.objectType)
+    },
+    constraintColor() {
+      return this.efmObjectColor('c')
+    },
+    iwColor() {
+      return this.efmObjectColor('iw')
+    },
   },
   props: {
     objectType: {
@@ -200,10 +274,13 @@ export default {
     },
 
     // selection for details pane
-    setForDetails() {
-      console.log('setting details ' + this.theObject.name)
-      this.$store.commit("efm/setObjectForDetails", {type: this.objectType, id: this.objectID})
-    }
+    // setForDetails() {
+    //   console.log('setting details ' + this.theObject.name)
+    //   this.$store.commit("efm/setObjectForDetails", {type: this.objectType, id: this.objectID})
+    // },
+    setForDetails(type = this.objectType, id=this.objectID) {
+        this.$store.commit("efm/setObjectForDetails", {type: type, id: id})
+    },
   },
   mounted() {
     // this.loadTheObject();
@@ -229,5 +306,8 @@ export default {
 }
 .efmElement {
   background: transparent !important;
+}
+.selected {
+  border: 2px solid black;
 }
 </style>

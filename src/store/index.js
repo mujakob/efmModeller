@@ -16,11 +16,11 @@ function random_s4() {
 
 const settingsStore = {
   state: {
-    colors: {
-      ds: 'yellow',
+    colors: {     // vuetify colors
+      ds: 'amber',
       fr: 'blue',
       iw: 'grey',
-      c: 'purple'
+      c: 'deep-purple'
     },
     editor: true,
   },
@@ -418,7 +418,14 @@ const efmStore = {
       }
       return iwList;
     },
-
+    efmObjectConstraints: (state) => (type, id) => {
+      if (type == 'ds') {
+        // only useful for DS
+        return state.c.filter(c => c.icb_id == id)
+      } else {
+        return []
+      }
+    },
 
     // for GUI based selection of new parents ect
     objectIsToBeSelected: (state, getters) => (type, id) => {
@@ -448,6 +455,13 @@ const efmStore = {
 
     objectForDetails: (state) => {
       return state.objectForDetails;
+    },
+    isSelectedForDetails: (state) => (type, id) => {
+      if (state.objectForDetails === {type: type, id: id}) {
+        return true
+      } else {
+        return false
+      }
     },
     // Concepts
     allConcepts: (state) => {
@@ -1499,34 +1513,42 @@ export default new Vuex.Store({
             // in case of e.g. deletion where there is only 200 as response
             returnValue = true;
           }
-        } else if (response.status === 401) {
-          // commit("logout");
-          commit("registerError", {
-            message:
-              "You are not logged in or don't have permission for this function",
-            component: "APIcall",
-          });
-        } else if (response.status === 404) {
-          commit("registerError", {
-            message: "Element couold not be found",
-            component: "APIcall",
-          });
-          returnValue = 404; // identifier for a 404
         } else {
+          returnValue = await response.json();
+          console.log(returnValue)
           commit("registerError", {
-            message:
-              "Error " +
-              response.status +
-              ' Could not perform API call for: url="' +
-              url +
-              '", method="' +
-              method +
-              '", data="' +
-              JSON.stringify(objectData) +
-              '".',
-            component: "APIcall",
-          });
+            message: "Error " + response.status + " from backend: " + returnValue.detail,
+            component: "APIcall", 
+          })
         }
+        // } else if (response.status === 401) {
+        //   // commit("logout");
+        //   commit("registerError", {
+        //     message:
+        //       "You are not logged in or don't have permission for this function",
+        //     component: "APIcall",
+        //   });
+        // } else if (response.status === 404) {
+        //   commit("registerError", {
+        //     message: "Element couold not be found",
+        //     component: "APIcall",
+        //   });
+        //   returnValue = 404; // identifier for a 404
+        // } else {
+        //   commit("registerError", {
+        //     message:
+        //       "Error " +
+        //       response.status +
+        //       ' Could not perform API call for: url="' +
+        //       url +
+        //       '", method="' +
+        //       method +
+        //       '", data="' +
+        //       JSON.stringify(objectData) +
+        //       '".',
+        //     component: "APIcall",
+        //   });
+        // }
       } catch (error) {
         console.error(error);
         commit("registerError", {

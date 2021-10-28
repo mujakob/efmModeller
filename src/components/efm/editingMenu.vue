@@ -29,7 +29,7 @@
                 v-bind="attrs"
                 v-on="on"
                 :disabled="b.disabled"
-                :color="b.color"
+                :color="objectColor(b.color)"
               >
                 <v-icon v-if="b.icon"> {{ b.icon }} </v-icon>
                 <span v-else>{{ b.buttonText }}</span>
@@ -52,7 +52,7 @@
               v-on="on"
               class="mr-3"
               :disabled="addButtonsObjectSpecific[0].disabled"
-              :color="addButtonsObjectSpecific[0].color"
+              :color="objectColor(addButtonsObjectSpecific[0].color)"
             >
               <v-icon v-if="addButtonsObjectSpecific[0].icon">
                 {{ addButtonsObjectSpecific[0].icon }}
@@ -129,7 +129,7 @@ export default {
                 function: "buttonNewChild",
                 forElements: ["fr"],
                 disabled: false,
-                color: "yellow",
+                color: "ds",    // fetches from settings/efmObjectColor 
                 },
                 {
                 text: "Add new function",
@@ -137,7 +137,7 @@ export default {
                 function: "buttonNewChild",
                 forElements: ["ds"],
                 disabled: false,
-                color: "blue",
+                color: "fr",
                 },
                 {
                 text: "Add new iw",
@@ -152,6 +152,7 @@ export default {
                 function: "buttonNewC",
                 forElements: ["ds"],
                 disabled: false,
+                color: "c"
                 },
             ],
         }
@@ -171,6 +172,7 @@ export default {
             "efmObjectPossibleParents",
             "efmObjectPossibleIW",
         ]),
+        ...mapGetters(["efmObjectColor",]),
         // button filter by objectType
         addButtonsObjectSpecific() {
             let sAddButtons = this.addButtons.filter((b) =>
@@ -189,6 +191,9 @@ export default {
         },
     },
     methods: {
+        objectColor(obj) {
+            return this.efmObjectColor(obj)
+        },
            // emited functions that are escalated up through the tree:
         newObject(data) {
             this.$emit("newObject", {
