@@ -1183,14 +1183,14 @@ export default new Vuex.Store({
       if (state.user) {
         console.log("still logged in");
         return true;
-        // } else if (
-        //   // check if we have sessionStorage auth
-        //   sessionStorage.getItem("token_type") &&
-        //   sessionStorage.getItem("access_token") &&
-        //   sessionStorage.getItem("loginTime") > Date.now() - deltaT
-        // ) {
-        //   console.log("found local storage auth");
-        //   return true;
+      // } else if (
+      //   // check if we have sessionStorage auth
+      //   sessionStorage.getItem("token_type") &&
+      //   sessionStorage.getItem("access_token") &&
+      //   sessionStorage.getItem("loginTime") > Date.now() - deltaT
+      // ) {
+      //   console.log("found local storage auth");
+      //   return true;
       } else {
         console.log("login check failed");
         console.log(sessionStorage.getItem("token_type"));
@@ -1412,25 +1412,27 @@ export default new Vuex.Store({
       }
       commit("stopLoading");
     },
-    async isLoggedIn({getters, commit, dispatch}) {
-      // returns true or false
-      let deltaT = 30 * 60 * 1000; // time until logout, 30mins
-      if (
-        // check if we have sessionStorage auth
-        sessionStorage.getItem("token_type") &&
-        sessionStorage.getItem("access_token") &&
-        sessionStorage.getItem("loginTime") > Date.now() - deltaT
-      ) {
-        console.log("found local storage auth");
+    async isLoggedIn({commit,dispatch}) {
+      // checks whether auth is available in sessionstorage
+      // if so, reloads user and other basic info from backend
+      // if not activates logout
+      // returns true/false depending on login status
+      
+      let deltaT = 30 * 60 * 1000; // time until logout
 
-        // check if we have to re-set user:
-        if (!getters.getUser) {
+      if (
+          // check if we have sessionStorage auth
+          sessionStorage.getItem("token_type") &&
+          sessionStorage.getItem("access_token") &&
+          sessionStorage.getItem("loginTime") > Date.now() - deltaT
+        ) {
+          console.log("found local storage auth");
           dispatch('fetchUserMe')
+          return true;
+        } else {
+          console.log('no auth found')
+          commit('logout')
         }
-        return true;
-      } else {
-        commit('logout')
-      }
     },
     async fetchUserMe({ getters, commit, dispatch }) {
       // gets the userdata and stores into store
