@@ -20,7 +20,11 @@ const settingsStore = {
       ds: 'amber',
       fr: 'blue',
       iw: 'grey',
-      c: 'deep-purple'
+      c: 'deep-purple',
+      iw_spatial: 'blue',
+      iw_energy: 'yellow',
+      iw_material: 'green',
+      iw_signal: 'red',
     },
     editor: true,
   },
@@ -1210,7 +1214,7 @@ export default new Vuex.Store({
       return state.errors.filter((e) => e.component == componentName);
     },
     allTheGoodNews: (state) => {
-      return state.snack;
+      return state.goodNews;
     },
     isLoading: (state) => {
       return state.loading;
@@ -1279,11 +1283,16 @@ export default new Vuex.Store({
       // removes errors by array index; used in ErrorMessage.vue to dismiss not only the error but remove it
       state.errors = state.errors.filter((e) => e.id != errorID);
     },
-    clearErrors(state, componentName = "") {
+    clearErrors(state, componentName) {
       // use with caution when component = ''
       // otherwise to clear all errors of a component, e.g. 'LoginProcess'
-      console.log("deleting errors of " + componentName);
-      state.errors = state.errors.filter((e) => e.component != componentName);
+      if (componentName) {
+        console.log("deleting errors of " + componentName);
+        state.errors = state.errors.filter((e) => e.component != componentName);
+      } else {
+        console.log("deleting ALL errors")
+        state.errors = []
+      }
     },
     goodNews(state, payload) {
       console.log("good news: " + payload);
@@ -1300,7 +1309,7 @@ export default new Vuex.Store({
       state.goodNews.push(news);
     },
     removeNews(state, newsID) {
-      state.goodNews.filter((n) => n.id != newsID);
+      state.goodNews = state.goodNews.filter((n) => n.id != newsID);
     },
     startLoading(state) {
       state.loading = true;

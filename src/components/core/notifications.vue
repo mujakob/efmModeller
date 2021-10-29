@@ -28,11 +28,19 @@
         <v-btn @click="dismissGoodNews(n.id)">dismiss</v-btn>
       </v-card-actions>
     </v-card>
+
+    <!-- clear all button -->
+    <v-btn 
+      v-if="getAllErrors.length"
+      @click="clearAllErrors()"
+    >
+      clear all errors
+    </v-btn>
   </v-container>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters} from "vuex";
 export default {
   name: "notifications",
   data() {
@@ -48,6 +56,9 @@ export default {
     dismissGoodNews(newsID) {
       this.$store.commit("removeNews", newsID);
     },
+    clearAllErrors() {
+      this.$store.commit("clearErrors", null)
+    }
   },
 };
 </script>
