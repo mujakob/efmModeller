@@ -39,7 +39,7 @@
           </v-tooltip>
         </v-speed-dial>
         <!--  in case only one add object button we don't need a plus -->
-        <v-tooltip bottom v-else>
+        <v-tooltip bottom v-else-if="addButtonsObjectSpecific.length">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               fab

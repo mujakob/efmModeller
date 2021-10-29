@@ -612,6 +612,7 @@ const efmStore = {
     },
 
     setObjectForDetails(state, object) {
+      // object is {type, iw}
       state.objectForDetails = object;
     },
 
@@ -655,6 +656,8 @@ const efmStore = {
       return allTrees;
     },
     async getTree({ commit, dispatch }, { treeID }) {
+      // sets all data to display a specific tree
+      // sets ds, fr, c, iw ,...
       let theTree = await dispatch(
         "apiCall",
         {
@@ -1178,7 +1181,11 @@ export default new Vuex.Store({
       return state.user;
     },
     getUserScope: (state) => {
-      return state.user.scopes;
+      if (state.user) {
+        return state.user.scopes;
+      } else {
+        return null
+      }
     },
     loggedIn: (state) => {
       // returns true or false

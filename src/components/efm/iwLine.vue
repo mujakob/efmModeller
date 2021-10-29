@@ -7,13 +7,13 @@
   >
     <!-- iw line  -->
     <path
-      :d="svgCubicCurve"
+      :d="svgQuadraticCurve"
       :stroke="lineColor"
       :stroke-width="lineWidth"
       fill="none"
     />
-    <!-- arrow head  -->
 
+    <!-- arrow head  -->
     <polyline
       :points="arrowHead"
       :style="
@@ -25,12 +25,31 @@
         lineWidth
       "
     />
+
+    <!-- selector and identificator -->
+    <circle
+      :cx="centrePoint.x"
+      :cy="centrePoint.y"
+      :r="identifierRadius"
+      :stroke="lineColor"
+      :stroke-width="lineWidth"
+      fill="white"
+      @click="selectIW"
+    />
+    <text 
+      :x="centrePoint.x-identifierRadius/2"
+      :y="centrePoint.y+identifierRadius/2"
+      @click="selectIW"
+    > 
+      {{iwType_shorthand}}
+    </text>
     <!-- <circle :cx="startX" :cy="startY" r="5" stroke="black" stroke-width="3" fill="none" />
       <circle :cx="endX" :cy="endY" r="5" stroke="black" stroke-width="3" fill="none" /> -->
   </svg>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 // import { mapGetters } from 'vuex'
 
 export default {
@@ -39,7 +58,7 @@ export default {
     return {
       // curveheight determines how far out from the lower point we bend the curve, factorised with curve length
       curveHeightFactor: 1,
-      lineColor: "blue",
+      identifierRadius: 10,
       lineWidth: 3,
       arrowHeight: 10,
       arrowWidth: 10,
@@ -56,7 +75,7 @@ export default {
     theIW: { required: true },
   },
   computed: {
-      
+    ...mapGetters(['efmObjectColor']),
     efmCanvas() {
       return document.getElementById('efmWorkspace')
     },
@@ -77,6 +96,21 @@ export default {
     curveLengthCorrected() {
       // adds linewidth and arrow width
       return this.curveLength + this.arrowWidth + this.lineWidth;
+    },
+    centrePoint() {
+      // centrePoint (Pc) is defined by central on x distance between start and end
+      //    and y being dx*heightfactor below 
+      // curve goes through it, and it is where the identifier circle sits
+      let xc = this.startX + (this.endX - this.startX)/2 // middle between start and end
+      let yc = (this.startX + this.startY)          // lowest point of the two starting points, assuming one of them is 0
+      yc = yc + xc*this.curveHeightFactor // adding curveheigtfactor * deltaX
+      return {x: xc, y: yc}
+    },
+    controlPoint() {
+      // control point for quadratic bezier curve based on start, centrePoint, end
+      let x1 = 2*this.centrePoint.x - this.startX/2 - this.endX/2
+      let y1 = 2*this.centrePoint.y - this.startY/2 - this.endY/2
+      return {x: x1, y: y1}
     },
     svgCubicCurve() {
       // const startX = 0
@@ -120,6 +154,28 @@ export default {
         endY_corrected
       );
     },
+    svgQuadraticCurve() {
+      // curve through start, centrepoint, end
+      // corrections for arrow display:
+      let endX_corrected = this.endX + this.arrowWidth / 2;
+      let endY_corrected = this.endY + this.arrowHeight;
+
+      const curveString = ("M " +
+        this.startX +
+        " " +
+        this.startY +
+        " Q " +
+        this.controlPoint.x +
+        " " +
+        this.controlPoint.y +
+        ", " +
+        endX_corrected +
+        " " +
+        endY_corrected
+      );
+      // console.log(curveString)
+      return curveString
+    },
     arrowHead() {
       // up-facing arrow in endpoint
       const height = this.arrowHeight;
@@ -135,12 +191,14 @@ export default {
       points = points + tX + ", " + tY;
       return points;
     },
+    lineColor() {
+      return this.efmObjectColor('iw_'+this.theIW.iw_type)
+    },
+    iwType_shorthand(){
+      return this.theIW.iw_type.substring(0, 1)
+    }
   },
   methods: {
-    // ...mapGetters('efm', ['getEFMobjectByID',]),
-    // theIW() {
-    //     return this.getEFMobjectByID('iw', iwID)
-    // },
     offset(element) {
         var rect = element.getBoundingClientRect(),
             scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
@@ -150,18 +208,29 @@ export default {
 
         return { y: rect.top + scrollTop - canvasRect.top, x: rect.left + scrollLeft - canvasRect.left};
     },
-    iwFromPos() {
-      // returns {x: startX, y: starty}
-      return this.offset(this.startElement)
-    },
-    iwToPos() {
-      // returns {x: endX, y: endY}
-      // returns center of element with id "objectID"
-      return this.offset(this.endElement);
-    },
+
     setStartEndPoints() {
-      let start = this.iwFromPos();
-      let end = this.iwToPos();
+      if (!this.startElement) {
+        this.$store.commit('registerError',
+          {
+          message: "Could not find start element for iw from DS" 
+            + this.theIW.from_ds_id
+            + " to DS" + this.theIW.to_ds_id,
+          component: this.$options.name,
+        })
+      }
+      if (!this.endElement) {
+        this.$store.commit('registerError',
+          {
+          message: "Could not find end element for iw from DS" 
+            + this.theIW.from_ds_id
+            + " to DS" + this.theIW.to_ds_id,
+          component: this.$options.name,
+        })
+      }
+      let start = this.offset(this.startElement)
+      let end = this.offset(this.endElement);
+
       if (start.x < end.x) {
         // case start is left, end is right
         // i.e. arrto from left to right
@@ -176,7 +245,7 @@ export default {
         this.posLeft = end.x;
       }
       if (start.y < end.y) {
-        // case star is top, end is bottom
+        // case start is top, end is bottom
         // i.e. arrow top down
         this.startY = 0;
         this.endY = end.y - start.y;
@@ -189,6 +258,10 @@ export default {
         this.posTop = end.y;
       }
     },
+
+    selectIW() {
+      this.$store.commit("efm/setObjectForDetails", {type: 'iw', id: this.theIW.id})
+    }
   },
   mounted() {
     this.setStartEndPoints();
