@@ -12,8 +12,7 @@
       <v-menu offset-y v-if="loggedIn">
         <template v-slot:activator="{ on, attrs }">
           <v-avatar color="primary" size="56" v-bind="attrs" v-on="on">
-            <v-img v-if="getUser.image" :src="required(userImg)" />
-            <v-icon v-else> mdi-account-circle </v-icon>
+            <v-icon> mdi-account-circle </v-icon>
           </v-avatar>
         </template>
 
@@ -23,7 +22,7 @@
               <v-icon>mdi-account-circle</v-icon>
             </v-list-item-icon>
 
-            {{ getUser.username }}
+            {{ user.username }}
           </v-list-item>
           <v-list-item :to="{ name: 'userProjects' }">
             My projects
@@ -55,7 +54,6 @@
 
 <script>
 // import utils from '@utils'
-import settings from "@/settings";
 import { mapGetters } from "vuex";
 
 export default {
@@ -77,10 +75,8 @@ export default {
     //     }
     // }
     newError() {
-      this.$store.commit("registerError", "test 123 ");
-    },
-    isLoggedIn() {
-      return this.$store.dispatch('isLoggedIn')
+      this.$store.commit('registerError', 'test error ')
+      this.$store.commit('goodNews', 'test good news')
     }
   },
   computed: {
@@ -88,15 +84,10 @@ export default {
     // loggedIn: function() {
     //     return utils.userLoggedIn()
     // },
-
-    userImg: function () {
-      if (this.getUser.image) {
-        return settings.imageHost + this.getUser.image;
-      } else {
-        return null;
-      }
-    },
   },
+  mounted() {
+    this.user = this.$store.dispatch('fetchUserMe')
+  }
 };
 </script>
 
