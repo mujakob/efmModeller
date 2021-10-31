@@ -1,36 +1,17 @@
 <template>
   <v-container id="notificationsCentre">
     <!-- ERRORS -->
-    <v-card
-      class="msgbox error red darken-5 white--text ma-5"
-      v-for="e in getAllErrors"
-      :key="e.id"
-    >
-      <v-card-title>Error</v-card-title>
-      <v-card-subtitle>
-        <!-- id: {{ e.id }} -->
-        <span v-if="e.component">; {{ e.component }}</span>
-      </v-card-subtitle>
-      <v-card-text>{{ e.message }}</v-card-text>
-      <v-card-actions>
-        <v-btn @click="dismissError(e.id)">dismiss</v-btn>
-      </v-card-actions>
-    </v-card>
-
-    <!-- GOOD NEWS -->
-    <v-card
-      class="msgbox goodnews green text--white ma-5"
-      v-for="n in allTheGoodNews"
-      :key="n.id"
-    >
-      <v-card-title>{{ n.message }}</v-card-title>
-      <v-card-actions>
-        <v-btn @click="dismissGoodNews(n.id)">dismiss</v-btn>
-      </v-card-actions>
-    </v-card>
+    <message
+      v-for="m of getAllMessages"
+      :key="m.id"
+      :message="m"
+      />
 
     <!-- clear all button -->
-    <v-btn v-if="getAllErrors.length" @click="clearAllErrors()">
+    <v-btn 
+      v-if="getAllMessages.length"
+      x-small
+      @click="clearAllErrors()">
       clear all errors
     </v-btn>
   </v-container>
@@ -38,7 +19,9 @@
 
 <script>
 import { mapGetters } from "vuex";
+import message from './message.vue';
 export default {
+  components: { message },
   name: "notifications",
   data() {
     return {
@@ -46,25 +29,13 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["getAllErrors", "allTheGoodNews"]),
+    ...mapGetters(["getAllMessages"]),
   },
   methods: {
-    dismissError(errorID) {
-      this.$store.commit("removeError", errorID);
-    },
-    dismissGoodNews(newsID) {
-      this.$store.commit("removeNews", newsID);
-    },
     clearAllErrors() {
-      this.$store.commit("clearErrors", null);
-      this.$store.commit("removeAllNews");
+      this.$store.commit("clearMessages", null);
     },
-    dismissWithTimeout(id) {
-      // removes a goodNews after 3sec
-      setTimeout(() => {
-        this.dismissGoodNews(id);
-      }, 3000);
-    },
+
   },
 };
 </script>

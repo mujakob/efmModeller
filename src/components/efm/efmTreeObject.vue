@@ -107,11 +107,12 @@
           background-color: green;
         "
       ></div>
-      
+
       <!-- </router-link> -->
       <v-card-text>{{ theObject.description }}</v-card-text>
       <!-- <v-card-actions> -->
       <editing-menu
+        v-if="showEditor"
         :objectID="objectID"
         :objectType="objectType"
         @newObject="newObject"
@@ -166,7 +167,7 @@ export default {
       "selectedConcept",
     ]),
 
-    ...mapGetters(["efmObjectColor"]),
+    ...mapGetters(["efmObjectColor", "showEditor"]),
 
     ...mapMutations("efm", ["setObjectForDetails"]),
 

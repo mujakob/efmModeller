@@ -2,6 +2,11 @@
   <div>
     <h1>Settings</h1>
     <p>More coming soon...</p>
+    <v-switch
+      v-model="toggleEditor"
+      label="show editor in EFM tree"
+      />
+      
     <v-list>
       <v-list-item> version: {{ version }} </v-list-item>
       <v-list-item>
@@ -22,7 +27,16 @@ export default {
 
   data: () => ({}),
   computed: {
-    ...mapGetters(["allApps"]),
+    ...mapGetters(["showEditor"]),
+
+    toggleEditor: {
+      get: function() {
+        return this.showEditor
+      },
+      set: function(value) {
+        this.$store.commit("setEditorVisibility", value) 
+      }
+    },
 
     version() {
       return settings.version;

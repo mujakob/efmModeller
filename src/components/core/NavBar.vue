@@ -66,6 +66,7 @@ export default {
   methods: {
     logUserOut() {
       this.$store.commit("logout");
+      this.$router.push({name: 'login'})
     },
     // getUser() {
     //     try {

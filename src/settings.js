@@ -3,7 +3,7 @@ export default {
   author: "Jakob R. Müller",
   authorEmail: "jakob.muller@chalmers.se",
   githubLink: "https://github.com/mujakob/sedFrontend",
-  version: 0.2,
+  version: 0.3,
   backend: "http://localhost:8000/api/",
   // coreAPI: "http://localhost:8000/api/core/",
   imageHost: "@/assets/img/",

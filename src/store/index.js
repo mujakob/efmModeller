@@ -33,7 +33,7 @@ const settingsStore = {
       'material',
       'signal'
     ],
-    editor: true,
+    showEditor: true,
   },
   getters: {
     efmObjectColor: (state) => (objType) => {
@@ -41,9 +41,16 @@ const settingsStore = {
     },
     iwTypes: (state) => {
       return state.iwTypes
+    },
+    showEditor: (state) => {
+      return state.showEditor
     }
   },
-  mutations: {},
+  mutations: {
+    setEditorVisibility(state, editorState) {
+      state.showEditor = editorState 
+    }
+  },
   actions: {},
   modules: {},
 };
@@ -97,16 +104,11 @@ const efmStore = {
           tree_id: "tree_id",
           is_top_level_DS: "is_top_level_ds",
         },
-        children: [
-          {
-            list: "requires_functions_id",
-            type: "fr",
-          },
-          // {    // Not implemented yet!
-          //   list: 'design_parameter_id',
-          //   type: 'dp'
-          // },
-        ],
+        children: {
+          list: "requires_functions_id",
+          type: "fr",
+        },
+        childrenString: 'requires functions',
         parentType: "fr",
         parentID: "isb_id",
         parentString: "solves function",
@@ -131,12 +133,10 @@ const efmStore = {
           description: "description",
           tree_id: "tree_id",
         },
-        children: [
-          {
-            list: "is_solved_by_id",
-            type: "ds",
-          },
-        ],
+        children: {
+          list: "is_solved_by_id",
+          type: "ds",
+        },
         childrenString: 'is solved by',
         parentType: "ds",
         parentID: "rf_id",
@@ -160,13 +160,13 @@ const efmStore = {
           iw_type: "iw_type",
           description: "description",
         },
-        children: [
-          {
-            to_ds: "targetID",
-          },
-        ],
+        children: {
+          type: "ds",
+          list: "to_ds_id",
+        },
         childrenString: 'interacts with (to)',
         parentType: "ds",
+        parentID: "from_ds_id",
         parentString: "interacts with (from)",
         // newParentUrl: 'fr/{id}/rf',
       },
@@ -188,7 +188,7 @@ const efmStore = {
         optionalFields: {
           description: "description",
         },
-        children: [],
+        children: null,
         childrenString: '',
         parentType: "ds",
         parentID: "icb_id",
@@ -212,12 +212,10 @@ const efmStore = {
         optionalFields: {
           description: "description",
         },
-        children: [
-          {
-            list: "top_level_ds_id",
-            type: "ds",
-          },
-        ],
+        children: {
+          list: "top_level_ds_id",
+          type: "ds",
+        },
       },
     },
     // the following two are for GUI selection of new parents etc
@@ -271,6 +269,7 @@ const efmStore = {
           for (let i in objInfo) {
             if (typeof objInfo[i] == "string") {
               objInfo[i] = objInfo[i].replace("{id}", id);
+              console.log(objInfo[i])
             }
           }
         }
@@ -286,26 +285,28 @@ const efmStore = {
       // returns list with type, id of each childobject of an efm object
       // needed for state consistency checks with the backend
       // console.log('getting all children of ' + type + id)
-      const objType = getters.EFMobjectInfo(type, id);
+      const objInfo = getters.EFMobjectInfo(type, id);
       const theObject = getters.getEFMobjectByID(type, id);
 
       let allChildrenList = [];
 
-      for (let c of objType.children) {
-        // console.log('collecting children of type ' + c.type + ' for ' + type + id)
+      // for (let c of objType.children) {
+      if (objInfo.children) {
+        const c = objInfo.children
+        console.log('collecting children of type ' + c.type + ' for ' + type + id)
         // c is like {type: 'ds', list: 'is_solved_by_id'}
         if (Array.isArray(theObject[c.list])) {
           // here we iterate through the objects children list
           for (let cc of theObject[c.list]) {
             // c.list contains IDs when backend is set correctly
 
-            // console.log('found child ' + c.type + cc + ' of ' + type + id)
+            console.log('found child ' + c.type + cc + ' of ' + type + id)
             allChildrenList.push({ type: c.type, id: cc });
           }
         } else {
           // in case that c.list is no list but just a single value, e.g. top_level_ds_id
-          // console.log('found child' + c.type + c.list + ' of ' + type + id)
-          allChildrenList.push({ type: c.type, id: c.list });
+          console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
+          allChildrenList.push({ type: c.type, id: theObject[c.list] });
         }
       }
       return allChildrenList;
@@ -1136,7 +1137,7 @@ export default new Vuex.Store({
   namspaced: true,
   state: {
     loginSessionDuration: 30 * 60 * 1000, // time until logout
-    loginTime: sessionStorage.getItem("loginTime") || 0,
+    token: null,
     user: {}, // user object from API
     // {
     //   "id": 1,
@@ -1146,15 +1147,11 @@ export default new Vuex.Store({
     //   "disabled": null,
     //   "scopes": "admin"
     // }
-    errors: [], // for centralised error handling
+    messages: [],
     // {
+    //   type: warning, error or info (info standard)
     //   message: String,
     //   component: string - component name, default 'general'
-    //   id: 4-digit-random-alphanumerical
-    // }
-    goodNews: [], // for centralised "good news" popup
-    // {
-    //   message: string,
     //   id: 4-digit-random-alphanumerical
     // }
     loading: false, // bool for login loading process, should be reworked
@@ -1173,34 +1170,28 @@ export default new Vuex.Store({
         return null;
       }
     },
-    getAuthToken: () => {
-      return {
-        token: sessionStorage.getItem("access_token"),
-        token_type: sessionStorage.getItem("token_type")
+    getAuthToken: (state) => {
+      if (state.token) {
+        return state.token
+      } else {
+        return {
+          token: sessionStorage.getItem("access_token"),
+          token_type: sessionStorage.getItem("token_type")
+        }
       }
     },
     loggedIn: (state, getters) => {
       // returns true or false
       let deltaT = state.loginSessionDuration
-      const token = getters.getAuthToken
-      if (sessionStorage.getItem("token_type")) {
-          console.log('found type')
-          console.log(sessionStorage.getItem("token_type"))
-        }
-      if( sessionStorage.getItem("access_token")) {
-        console.log('found token')
-        console.log(sessionStorage.getItem("access_token"))
-      }
-      if (sessionStorage.getItem("loginTime") > Date.now() - deltaT) { 
-        console.log('time valid')
-        console.log(sessionStorage.getItem("loginTime"))
-      }
+      let token = getters.getAuthToken
+      
 
       if (
         // check if we have sessionStorage auth
-        token.token && token.token_type && 
+        token.access_token && 
+        token.token_type 
         // check if the 30min session is over:
-        sessionStorage.getItem("loginTime") > Date.now() - deltaT 
+        // (sessionStorage.getItem("loginTime") +deltaT) > Date.now()
       ) {
         console.log("found session storage auth");
         return true;
@@ -1212,18 +1203,14 @@ export default new Vuex.Store({
         return false;
       }
     },
-    getAllErrors: (state) => {
-      // returns an array of all errors
-      // used to display error messages in App.vue
-      return state.errors;
+    getAllMessages: (state) => {
+      // returns an array of all messages
+      return state.messages;
     },
     getErrorsOfComponent: (state) => (componentName) => {
       // returns an array of all errors
       // used to display error messages in App.vue
-      return state.errors.filter((e) => e.component == componentName);
-    },
-    allTheGoodNews: (state) => {
-      return state.goodNews;
+      return state.messages.filter((e) => e.component == componentName);
     },
     isLoading: (state) => {
       return state.loading;
@@ -1242,8 +1229,17 @@ export default new Vuex.Store({
       state.user = null;
       sessionStorage.removeItem("token_type");
       sessionStorage.removeItem("access_token");
+      this.commit('setAuthToken', null)
       this.commit('goodNews', "you have been logged out!")
       console.log("logged out...");
+    },
+    setAuthToken(state, token) {
+      state.token = token
+      if (token) {
+        // sessionStorage.setItem("access_token", token["access_token"]);
+        // sessionStorage.setItem("token_type", token["token_type"]);
+        sessionStorage.setItem("loginTime", Date.now());
+      }
     },
     registerError(state, payload) {
       // registers a new error
@@ -1251,62 +1247,55 @@ export default new Vuex.Store({
 
       // first generate an ID
       let errorID = random_s4();
-      while (state.errors.filter((e) => e.id == errorID).length) {
+      while (state.messages.filter((e) => e.id == errorID).length) {
         // generate new one
         errorID = random_s4();
       }
 
-      var error = {};
+      var error = {
+        type: 'error',
+        id: errorID,      
+      };
       if (typeof payload === String) {
-        error = {
-          message: payload,
-          component: "general",
-          id: errorID,
-        };
+        error.message = payload
+        error.component = "general"
       } else {
-        error = {
-          message: payload.message,
-          component: payload.component,
-          id: errorID,
-        };
+        error.message = payload.message
+        error.component = payload.component
       }
       console.log("error by " + error.component + ": " + error.message);
-      state.errors.push(error);
+      state.messages.push(error);
     },
-    removeError(state, errorID) {
+    removeMessage(state, errorID) {
       // removes errors by array index; used in ErrorMessage.vue to dismiss not only the error but remove it
-      state.errors = state.errors.filter((e) => e.id != errorID);
+      state.messages = state.messages.filter((e) => e.id != errorID);
     },
-    clearErrors(state, componentName) {
+    clearMessages(state, componentName) {
       // use with caution when component = ''
       // otherwise to clear all errors of a component, e.g. 'LoginProcess'
       if (componentName) {
         console.log("deleting errors of " + componentName);
-        state.errors = state.errors.filter((e) => e.component != componentName);
+        state.messages = state.messages.filter((e) => e.component != componentName);
       } else {
-        console.log("deleting ALL errors");
-        state.errors = [];
+        console.log("deleting ALL messages");
+        state.messages = [];
       }
     },
     goodNews(state, payload) {
       console.log("good news: " + payload);
       // first create ID
       let newsID = random_s4();
-      while (state.goodNews.filter((e) => e.id == newsID).length) {
+      while (state.messages.filter((e) => e.id == newsID).length) {
         // generate new one
         newsID = random_s4();
       }
       const news = {
+        type: 'info',
+        component: '',
         message: payload,
         id: newsID,
       };
-      state.goodNews.push(news);
-    },
-    removeNews(state, newsID) {
-      state.goodNews = state.goodNews.filter((n) => n.id != newsID);
-    },
-    removeAllNews(state) {
-      state.goodNews = [];
+      state.messages.push(news);
     },
     startLoading(state) {
       state.loading = true;
@@ -1336,8 +1325,7 @@ export default new Vuex.Store({
     async login({ commit }, user) {
       commit("startLoading"); // loading window
       // the login process
-      commit("clearErrors", "loginProcess");
-      commit('logout')
+      commit("clearMessages", "loginProcess");
       // create form body for oauth2 login scheme
       var formBody = [];
       for (var property in user) {
@@ -1369,9 +1357,7 @@ export default new Vuex.Store({
             access_token: data.access_token,
             token_type: data.token_type,
           };
-          sessionStorage.setItem("access_token", token["access_token"]);
-          sessionStorage.setItem("token_type", token["token_type"]);
-          sessionStorage.setItem("loginTime", Date.now());
+          commit("setAuthToken", token)
           console.log('set auth credentials to storage')
 
           // user = getters.getUser
@@ -1469,7 +1455,7 @@ export default new Vuex.Store({
           console.log("logged in, adding auth");
           messageHeader = Object.assign(messageHeader, {
             Authorization:
-              token.token_type + " " + token.token,
+              token.token_type + " " + token.access_token,
           });
         }
         if (method != "GET") {

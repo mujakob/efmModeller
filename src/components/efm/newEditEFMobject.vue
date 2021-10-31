@@ -96,7 +96,7 @@ export default {
         if (this.editID) {
           console.log("submiting to PUT");
           // of course, if editID is set we need to submit an EDIT
-          // but first, add the editID to the submitobject so backend knows what's up!
+          // but first, add the editID to the submitobject so the store knows what's up!
           objectToSubmit["id"] = this.editID;
           console.log("last log before disptach");
           console.log(objectToSubmit);

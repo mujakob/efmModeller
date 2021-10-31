@@ -6,7 +6,7 @@
           <v-btn
             fab
             x-small
-            @click="showConceptPane = !showConceptPane"
+            @click="showHideConceptPane()"
             v-bind="attrs"
             v-on="on"
           >
@@ -71,6 +71,14 @@ export default {
     async loadProject() {
       this.getTree({ treeID: this.treeID });
     },
+    async showHideConceptPane() {
+      this.showConceptPane = !this.showConceptPane
+
+      // reloading the concepts when opening
+      if (this.showConceptPane) {
+        await this.$store.dispatch("efm/getConcepts");
+      }
+    }
   },
   computed: {
     ...mapGetters("efm", ["treeInfo", "objectForDetails"]),

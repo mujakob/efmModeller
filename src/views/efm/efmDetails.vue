@@ -10,22 +10,24 @@
       {{ objInfo.string }}
     </v-card-text>
 
-    <!-- name, id parent, description -->
+    <!-- name, id, parent,  -->
     <v-card-title>
       {{ objData.name }}
       <v-spacer />
       <v-btn fab x-small @click="unsetDetails"> x </v-btn>
     </v-card-title>
-    <v-card-subtitle> id: {{ objectID }} </v-card-subtitle>
-    <v-card-subtitle v-if="parent">
-      {{ objInfo.parentString }}:
-      <span
-        class="text-h6"
-        @click="setForDetails(objInfo.parentType, parent.id)"
-      >
-        {{ parent.name }}
-      </span>
-    </v-card-subtitle>
+    <v-card-text> 
+      id: {{ objectID }}
+      <p v-if="parent">
+        <span class="text-caption"> {{ objInfo.parentString }}: </span>
+        <v-chip
+          @click="setForDetails(objInfo.parentType, parent.id)"
+          :color="objectColor(objInfo.parentType)"
+        >
+          {{ parent.name }}
+        </v-chip>
+      </p>
+    </v-card-text>
 
     <!-- editing menu -->
     <editing-menu
@@ -35,8 +37,26 @@
       @deleteObject="deleteObject"
     />
 
-    <v-card-text>
+    <!-- description -->
+    <v-card-text v-if="objData.description">
+      <v-divider />
+      <p class="text-caption"> description: </p>
       {{ objData.description }}
+    </v-card-text>
+
+    <v-card-text v-if="children">
+      <v-divider />
+      <p class="text-caption"> 
+        {{objInfo.childrenString}}
+      </p>
+      <v-chip
+        v-for="c in children"
+        :key="c.id"
+        @click="setForDetails(c.objType, c.id)"
+        :color="objectColor(c.objType)"
+      >
+        {{c.name}}
+      </v-chip>
     </v-card-text>
 
 
@@ -63,9 +83,9 @@
       </v-chip>
     </v-card-text>
 
-    <v-card-text v-if="incomingIW.length">
+    <v-card-text v-if="outgoingIW.length">
       <v-divider />
-      <p class="text-caption" v-if="outgoingIW.length">
+      <p class="text-caption">
         outgoing interactions 
       </p>
       <v-chip
@@ -173,7 +193,14 @@ export default {
       return this.efmObjectParent(this.objectType, this.objectID);
     },
     children() {
-      return this.efmObjectChildren(this.objectType, this.objectID);
+      const childIDs = this.efmObjectChildren(this.objectType, this.objectID);
+      let childObjects = []
+      for (const c of childIDs) {
+        let cObject = this.getEFMobjectByID(c.type, c.id)
+        cObject.objType = c.type   // needed cause usually the objects don't know their own type -.-
+        childObjects.push(cObject)
+      }
+      return childObjects        
     },
 
     // IW for DS:
