@@ -1,12 +1,15 @@
 <template>
-  <div 
-    v-if="theObject" 
-    :id="objectType + objectID" 
+  <div
+    v-if="theObject"
+    :id="objectType + objectID"
     class="efmElement transparent"
   >
-    <v-card 
-      :class="[isToBeSelected ? 'toBeSelected' : '', isSelected ? 'selected': '',]"
-      style="z-index: 10;"
+    <v-card
+      :class="[
+        isToBeSelected ? 'toBeSelected' : '',
+        isSelected ? 'selected' : '',
+      ]"
+      style="z-index: 10"
     >
       <!-- <router-link :to="{
                 name: '${objectType}Detail',
@@ -26,14 +29,14 @@
       </v-btn>
 
       <!-- element card details  -->
-      <v-card-title 
+      <v-card-title
         class="text-h5"
         @click="setForDetails(objectType, objectID)"
         :class="objectColor"
       >
         {{ theObject.name }}
       </v-card-title>
-       <!-- constraints -->
+      <!-- constraints -->
       <v-speed-dial
         v-model="showConstraints"
         direction="top"
@@ -42,16 +45,9 @@
         v-if="constraints.length"
       >
         <template v-slot:activator>
-          <v-chip
-            class="ma-2"
-            :color="constraintColor"
-            text-color="white"
-          >
-            <v-avatar
-              left
-              :class="[constraintColor, 'darken-4']"
-            >
-              {{constraints.length}}
+          <v-chip class="ma-2" :color="constraintColor" text-color="white">
+            <v-avatar left :class="[constraintColor, 'darken-4']">
+              {{ constraints.length }}
             </v-avatar>
             constraints
           </v-chip>
@@ -64,7 +60,7 @@
           :key="c.id"
           @click="setForDetails('c', c.id)"
         >
-         {{c.name}}
+          {{ c.name }}
         </v-chip>
       </v-speed-dial>
 
@@ -85,32 +81,42 @@
       </v-chip> -->
 
       <!-- IW (in case DS) as connectors for iw arrows-->
-      <div 
-        v-for="iw in incomingIW" 
-        :key="iw.id" 
-        :id="'iwTo' + iw.id" 
-        style="position:absolute; bottom:2px; left:2px; height:2px; width:2px; background-color:green;"
-      > </div>
-      <div 
-        v-for="iw in outgoingIW" 
-        :key="iw.id" 
+      <div
+        v-for="iw in incomingIW"
+        :key="iw.id"
+        :id="'iwTo' + iw.id"
+        style="
+          position: absolute;
+          bottom: 2px;
+          left: 2px;
+          height: 2px;
+          width: 2px;
+          background-color: green;
+        "
+      ></div>
+      <div
+        v-for="iw in outgoingIW"
+        :key="iw.id"
         :id="'iwFrom' + iw.id"
-        style="position:absolute; bottom:2px; right:2px; height:2px; width:2px; background-color:green;" 
-      > </div>
-
-      <!-- constraints (in case DS) -->
-      <v-chip v-for="cID in theObject.constraint_id" :key="cID" color="purple">
-        constrained by {{ cID }}
-      </v-chip>
+        style="
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          height: 2px;
+          width: 2px;
+          background-color: green;
+        "
+      ></div>
+      
       <!-- </router-link> -->
       <v-card-text>{{ theObject.description }}</v-card-text>
       <!-- <v-card-actions> -->
-        <editing-menu 
-          :objectID="objectID" 
-          :objectType="objectType"
-          @newObject="newObject"
-          @deleteObject="deleteObject"
-        />
+      <editing-menu
+        :objectID="objectID"
+        :objectType="objectType"
+        @newObject="newObject"
+        @deleteObject="deleteObject"
+      />
       <!-- </v-card-actions> -->
     </v-card>
     <ul class="efmSubElements transparent">
@@ -130,15 +136,15 @@
 <script>
 // import utils from "@/utils";
 import { mapGetters, mapMutations } from "vuex";
-import EditingMenu from './editingMenu.vue';
+import EditingMenu from "./editingMenu.vue";
 
 export default {
   name: "efmTreeObject",
-  components: {EditingMenu},
+  components: { EditingMenu },
   data() {
     return {
       projectData: null,
-      
+
       // parameters for gui editing watchers:
       waitingForNewParent: false,
 
@@ -160,9 +166,9 @@ export default {
       "selectedConcept",
     ]),
 
-    ...mapGetters(["efmObjectColor",]),
-    
-    ...mapMutations('efm', ['setObjectForDetails']),
+    ...mapGetters(["efmObjectColor"]),
+
+    ...mapMutations("efm", ["setObjectForDetails"]),
 
     theObject() {
       return this.getEFMobjectByID(this.objectType, this.objectID);
@@ -175,15 +181,14 @@ export default {
       } else if (this.objectType === "fr") {
         // returning DS objects
         let children = this.theObject.is_solved_by_id;
-        
-        if (this.selectedConcept){
+
+        if (this.selectedConcept) {
           // in case concept is loaded we filter by dna:
-          const dna =  this.selectedConcept.dna
-          console.log("dna: " + dna)
-          children = children.filter(child => dna.includes(child));
+          const dna = this.selectedConcept.dna;
+          console.log("dna: " + dna);
+          children = children.filter((child) => dna.includes(child));
         }
-        return children
-        
+        return children;
       } else {
         return "";
       }
@@ -218,21 +223,21 @@ export default {
       }
     },
     constraints() {
-      return this.efmObjectConstraints(this.objectType, this.objectID)
+      return this.efmObjectConstraints(this.objectType, this.objectID);
     },
     // selection
     isSelected() {
-      return this.isSelectedForDetails(this.objectType, this.objectID)
+      return this.isSelectedForDetails(this.objectType, this.objectID);
     },
     // COLORS
     objectColor() {
-      return this.efmObjectColor(this.objectType)
+      return this.efmObjectColor(this.objectType);
     },
     constraintColor() {
-      return this.efmObjectColor('c')
+      return this.efmObjectColor("c");
     },
     iwColor() {
-      return this.efmObjectColor('iw')
+      return this.efmObjectColor("iw");
     },
   },
   props: {
@@ -267,8 +272,6 @@ export default {
       });
     },
 
-    
-
     // GUI selection mecahnism
     async selectThis() {
       console.log("selected " + this.objectType + this.objectID);
@@ -291,8 +294,8 @@ export default {
     //   console.log('setting details ' + this.theObject.name)
     //   this.$store.commit("efm/setObjectForDetails", {type: this.objectType, id: this.objectID})
     // },
-    setForDetails(type = this.objectType, id=this.objectID) {
-        this.$store.commit("efm/setObjectForDetails", {type: type, id: id})
+    setForDetails(type = this.objectType, id = this.objectID) {
+      this.$store.commit("efm/setObjectForDetails", { type: type, id: id });
     },
   },
   mounted() {

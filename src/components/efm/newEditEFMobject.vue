@@ -9,9 +9,21 @@
         v-model="newObject.name"
         label="name"
         :rules="rules.notEmpty"
+        v-if="showField('name')"
       />
 
-      <v-text-field v-model="newObject.description" label="Description" />
+      <v-text-field 
+        v-model="newObject.description"
+        label="Description" 
+        v-if="showField('description')"
+      />
+
+      <v-combobox
+        v-model="newObject.iw_type"
+        v-if="showField('iw_type')"
+        label="iw type"
+        :items="iwTypes"
+      />
 
       <!-- <v-select
         v-model="newObject.parentID"
@@ -135,6 +147,17 @@ export default {
         }
       }
     },
+    showField(fieldName) {
+      // checks objectInfo.requiredFields and .optionalFields whether the field should be shown
+      //returns "required", "optional" or false
+      if (fieldName in this.objectInfo.requiredFields) {
+        return "required"
+      } else if (fieldName in this.objectInfo.optionalFields) {
+        return "optional"
+      } else {
+        return false
+      }
+    }
   },
   props: {
     editID: { type: Number, default: null }, // if set, we are in editing mode
@@ -142,7 +165,7 @@ export default {
     objectType: { type: String, required: true }, // sets the type of the form
   },
   computed: {
-    ...mapGetters(["getErrorsOfComponent"]),
+    ...mapGetters(["getErrorsOfComponent", "iwTypes"]),
     ...mapGetters("efm", [
       "getEFMobjectByID",
       "EFMobjectInfo",
@@ -153,10 +176,7 @@ export default {
     },
     titleText() {
       if (this.editID) {
-        return "Editing " + 
-          this.objectInfo.short + 
-          ": " + 
-          this.newObject.name;
+        return "Editing " + this.objectInfo.short + ": " + this.newObject.name;
       } else {
         return (
           "Creating new " +

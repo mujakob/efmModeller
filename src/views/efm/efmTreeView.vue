@@ -10,15 +10,10 @@
       objectType="ds"
       @newObject="newObject"
       @deleteObject="deleteObject"
-      style="z-index: 10;"
+      style="z-index: 10"
     />
 
-    <iw-line 
-      v-for="iw in allIW" 
-      :key="iw.id" 
-      :theIW="iw" 
-      style="z-index: 1;"
-    />
+    <iw-line v-for="iw in allIW" :key="iw.id" :theIW="iw" style="z-index: 1" />
 
     <NewDS
       v-if="newObjectPopup"

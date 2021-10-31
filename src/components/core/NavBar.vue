@@ -34,7 +34,7 @@
         </v-list>
 
         <!-- ADMIN MENU -->
-        <v-list-item-group v-if="getUserScope == 'admin'" style="opacity: 1">
+        <!-- <v-list-item-group v-if="getUserScope == 'admin'" style="opacity: 1">
           <v-divider />
           <v-list-item class="text-caption"> Admin menu: </v-list-item>
           <v-divider />
@@ -44,10 +44,10 @@
           <v-list-item :to="{ name: 'adminAllProjects' }">
             All projects
           </v-list-item>
-        </v-list-item-group>
+        </v-list-item-group> -->
       </v-menu>
 
-      <v-btn v-else :to="{ name: 'userAbout' }"> login </v-btn>
+      <v-btn v-else :to="{ name: 'userProjects' }"> login </v-btn>
     </span>
   </v-app-bar>
 </template>
@@ -75,9 +75,9 @@ export default {
     //     }
     // }
     newError() {
-      this.$store.commit('registerError', 'test error ')
-      this.$store.commit('goodNews', 'test good news')
-    }
+      this.$store.commit("registerError", "test error ");
+      this.$store.commit("goodNews", "test good news");
+    },
   },
   computed: {
     ...mapGetters(["getUser", "loggedIn", "getUserScope", "getAppMenu"]),
@@ -86,12 +86,12 @@ export default {
     // },
   },
   mounted() {
-    this.user = this.$store.dispatch('fetchUserMe')
-  }
+    this.user = this.$store.dispatch("fetchUserMe");
+  },
 };
 </script>
 
-<style >
+<style>
 .v-app-bar {
   z-index: 102 !important;
 }

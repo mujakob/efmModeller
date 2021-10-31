@@ -16,31 +16,37 @@ function random_s4() {
 
 const settingsStore = {
   state: {
-    colors: {     // vuetify colors
-      ds: 'amber',
-      fr: 'blue',
-      iw: 'grey',
-      c: 'deep-purple',
-      iw_spatial: 'blue',
-      iw_energy: 'yellow',
-      iw_material: 'green',
-      iw_signal: 'red',
+    colors: {
+      // vuetify colors
+      ds: "amber",
+      fr: "blue",
+      iw: "grey",
+      c: "deep-purple",
+      iw_spatial: "blue",
+      iw_energy: "yellow",
+      iw_material: "green",
+      iw_signal: "red",
     },
+    iwTypes: [
+      'spatial',
+      'energy',
+      'material',
+      'signal'
+    ],
     editor: true,
   },
   getters: {
     efmObjectColor: (state) => (objType) => {
       return state.colors[objType];
     },
+    iwTypes: (state) => {
+      return state.iwTypes
+    }
   },
-  mutations: {
-
-  },
-  actions: {
-
-  },
-  modules: {}
-}
+  mutations: {},
+  actions: {},
+  modules: {},
+};
 
 const efmStore = {
   namespaced: true,
@@ -96,10 +102,6 @@ const efmStore = {
             list: "requires_functions_id",
             type: "fr",
           },
-          {
-            list: "interacts_with_id",
-            type: "iw",
-          },
           // {    // Not implemented yet!
           //   list: 'design_parameter_id',
           //   type: 'dp'
@@ -135,6 +137,7 @@ const efmStore = {
             type: "ds",
           },
         ],
+        childrenString: 'is solved by',
         parentType: "ds",
         parentID: "rf_id",
         parentString: "is required by",
@@ -152,21 +155,19 @@ const efmStore = {
         putMutation: "editIW",
         deleteMutation: "deleteIW",
         requiredFields: {
-          name: "name", // API : fieldName
-          from_ds: "parentID",
-          to_ds: "targetID",
         },
         optionalFields: {
           iw_type: "iw_type",
-          tree_id: "tree_id",
+          description: "description",
         },
         children: [
           {
             to_ds: "targetID",
           },
         ],
+        childrenString: 'interacts with (to)',
         parentType: "ds",
-        parentString: "is a required function of"
+        parentString: "interacts with (from)",
         // newParentUrl: 'fr/{id}/rf',
       },
       c: {
@@ -187,10 +188,12 @@ const efmStore = {
         optionalFields: {
           description: "description",
         },
+        children: [],
+        childrenString: '',
         parentType: "ds",
         parentID: "icb_id",
-        parentString: "constrains"
-        // newParentUrl: 'fr/{id}/rf',
+        parentString: "constrains",
+        newParentUrl: 'c/{id}/icb',
       },
       tree: {
         string: "EFM tree",
@@ -224,7 +227,7 @@ const efmStore = {
     objectWaitingForIW: null, // {type, id}
 
     // details pane:
-    objectForDetails: null,   // {type, id} pair
+    objectForDetails: null, // {type, id} pair
 
     // selected concept
     selectedConcept: null, // id
@@ -393,13 +396,16 @@ const efmStore = {
       return possibleForIW;
     },
     efmObjectParent: (state, getters) => (type, id) => {
-      const objInfo = getters.EFMobjectInfo(type, id)
-      const objData = getters.getEFMobjectByID(type, id)
-      let parent = null
+      const objInfo = getters.EFMobjectInfo(type, id);
+      const objData = getters.getEFMobjectByID(type, id);
+      let parent = null;
       if (objInfo.parentID) {
-        parent = getters.getEFMobjectByID(objInfo.parentType, objData[objInfo.parentID])
+        parent = getters.getEFMobjectByID(
+          objInfo.parentType,
+          objData[objInfo.parentID]
+        );
       }
-      return parent
+      return parent;
     },
     incomingIWofDS: (state, getters) => (id) => {
       // returns all iw which have the DS with _id_ as toDS
@@ -426,11 +432,11 @@ const efmStore = {
       return iwList;
     },
     efmObjectConstraints: (state) => (type, id) => {
-      if (type == 'ds') {
+      if (type == "ds") {
         // only useful for DS
-        return state.c.filter(c => c.icb_id == id)
+        return state.c.filter((c) => c.icb_id == id);
       } else {
-        return []
+        return [];
       }
     },
 
@@ -464,10 +470,10 @@ const efmStore = {
       return state.objectForDetails;
     },
     isSelectedForDetails: (state) => (type, id) => {
-      if (state.objectForDetails === {type: type, id: id}) {
-        return true
+      if (state.objectForDetails === { type: type, id: id }) {
+        return true;
       } else {
-        return false
+        return false;
       }
     },
     // Concepts
@@ -478,8 +484,8 @@ const efmStore = {
       return state.concepts.find((c) => c.id == id);
     },
     selectedConcept: (state) => {
-      return state.concepts.find(c => c.id == state.selectedConcept)
-    }
+      return state.concepts.find((c) => c.id == state.selectedConcept);
+    },
   },
   mutations: {
     setTreeList(state, payload) {
@@ -501,6 +507,11 @@ const efmStore = {
       state.fr = theTree.fr;
       state.c = theTree.c;
       state.iw = theTree.iw;
+
+      // special for iw names
+      for (let iw of state.iw) {
+        iw.name = iw.iw_type + " interaction"
+      }
     },
     setAllConcepts(state, concepts) {
       state.concepts = concepts;
@@ -617,8 +628,8 @@ const efmStore = {
     },
 
     selectConcept(state, id) {
-      state.selectedConcept = id
-    }
+      state.selectedConcept = id;
+    },
   },
   actions: {
     async newTree({ commit, dispatch }, { projectID, treeData }) {
@@ -695,7 +706,7 @@ const efmStore = {
         },
         { root: true }
       );
-      console.log(allConcepts)
+      console.log(allConcepts);
       // in case error, so it's not "undefined" but empty array
       if (!allConcepts) {
         allConcepts = [];
@@ -718,15 +729,8 @@ const efmStore = {
       );
       console.log(deletion);
       if (deletion) {
-        // commit(objType.deleteMutation, id);
-        commit(
-          "goodNews",
-          {
-            message: "Deleted " + objType.string,
-            timeout: 3000,
-          },
-          { root: true }
-        );
+        commit("deleteProject", treeID, { root: true });
+        commit("goodNews", "Deleted " + objType.string, { root: true });
       }
       return deletion;
     },
@@ -760,11 +764,7 @@ const efmStore = {
       if (newObject) {
         // commit(objType.postMutation, newObject);
         commit(
-          "goodNews",
-          {
-            message: "Created new " + objType.string + ": " + newObject.name,
-            timeout: 3000,
-          },
+          "goodNews", "Created new " + objType.string + ": " + newObject.name,
           { root: true }
         );
 
@@ -804,11 +804,7 @@ const efmStore = {
         // console.log(objType.putMutation, newObjectData)
         // commit(objType.putMutation, newObjectData);
         commit(
-          "goodNews",
-          {
-            message: "Edited " + objType.string + ": " + newObjectData.name,
-            timeout: 3000,
-          },
+          "goodNews", "Edited " + objType.string + ": " + newObjectData.name,
           { root: true }
         );
 
@@ -837,11 +833,7 @@ const efmStore = {
       if (deletion) {
         // commit(objType.deleteMutation, id);
         commit(
-          "goodNews",
-          {
-            message: "Deleted " + objType.string,
-            timeout: 3000,
-          },
+          "goodNews", "Deleted " + objType.string,
           { root: true }
         );
         // // and we need to check all the children too, since they probably need to be removed as well
@@ -920,7 +912,7 @@ const efmStore = {
             newRelation.name
         );
 
-        let submitData = { query: "newParentID", value: newRelation.id };
+        let submitData = { query: "new_parent_id", value: newRelation.id };
 
         let newParentUrl = objectInfo.newParentUrl;
         // dispatch to backend
@@ -1133,11 +1125,7 @@ const projectStore = {
       if (success) {
         commit("updateProjectName", { key: key, name: projectName });
         commit(
-          "goodNews",
-          {
-            message: "Edited project name to " + projectName,
-            timeout: 3000,
-          },
+          "goodNews", "Edited project name to " + projectName,
           { root: true }
         );
       }
@@ -1149,8 +1137,8 @@ const projectStore = {
 export default new Vuex.Store({
   namspaced: true,
   state: {
-    status: "", // login status
-    token: sessionStorage.getItem("token") || "", // authentication token
+    loginSessionDuration: 30 * 60 * 1000, // time until logout
+    loginTime: sessionStorage.getItem("loginTime") || 0,
     user: {}, // user object from API
     // {
     //   "id": 1,
@@ -1184,24 +1172,40 @@ export default new Vuex.Store({
       if (state.user) {
         return state.user.scopes;
       } else {
-        return null
+        return null;
       }
     },
-    loggedIn: (state) => {
+    getAuthToken: () => {
+      return {
+        token: sessionStorage.getItem("access_token"),
+        token_type: sessionStorage.getItem("token_type")
+      }
+    },
+    loggedIn: (state, getters) => {
       // returns true or false
-      let deltaT = 30 * 60 * 1000; // time until logout
+      let deltaT = state.loginSessionDuration
+      const token = getters.getAuthToken
+      if (sessionStorage.getItem("token_type")) {
+          console.log('found type')
+          console.log(sessionStorage.getItem("token_type"))
+        }
+      if( sessionStorage.getItem("access_token")) {
+        console.log('found token')
+        console.log(sessionStorage.getItem("access_token"))
+      }
+      if (sessionStorage.getItem("loginTime") > Date.now() - deltaT) { 
+        console.log('time valid')
+        console.log(sessionStorage.getItem("loginTime"))
+      }
 
-      if (state.user) {
-        console.log("still logged in");
+      if (
+        // check if we have sessionStorage auth
+        token.token && token.token_type && 
+        // check if the 30min session is over:
+        sessionStorage.getItem("loginTime") > Date.now() - deltaT 
+      ) {
+        console.log("found session storage auth");
         return true;
-      // } else if (
-      //   // check if we have sessionStorage auth
-      //   sessionStorage.getItem("token_type") &&
-      //   sessionStorage.getItem("access_token") &&
-      //   sessionStorage.getItem("loginTime") > Date.now() - deltaT
-      // ) {
-      //   console.log("found local storage auth");
-      //   return true;
       } else {
         console.log("login check failed");
         console.log(sessionStorage.getItem("token_type"));
@@ -1234,28 +1238,13 @@ export default new Vuex.Store({
     },
   },
   mutations: {
-    auth_request(state) {
-      // setting the login status during the login process
-      state.status = "loading";
-    },
-    auth_success(state, payload) {
-      // used in login process
-      state.status = "success";
-      state.token = payload.token;
-      state.user = payload.user;
-    },
-    auth_error(state) {
-      // used in login process
-      state.status = "error";
-    },
     logout(state) {
-      state.status = "";
-      state.token = "";
       // remove user-related objects from store:
       state.apps = [];
       state.user = null;
       sessionStorage.removeItem("token_type");
       sessionStorage.removeItem("access_token");
+      this.commit('goodNews', "you have been logged out!")
       console.log("logged out...");
     },
     registerError(state, payload) {
@@ -1297,8 +1286,8 @@ export default new Vuex.Store({
         console.log("deleting errors of " + componentName);
         state.errors = state.errors.filter((e) => e.component != componentName);
       } else {
-        console.log("deleting ALL errors")
-        state.errors = []
+        console.log("deleting ALL errors");
+        state.errors = [];
       }
     },
     goodNews(state, payload) {
@@ -1317,6 +1306,9 @@ export default new Vuex.Store({
     },
     removeNews(state, newsID) {
       state.goodNews = state.goodNews.filter((n) => n.id != newsID);
+    },
+    removeAllNews(state) {
+      state.goodNews = [];
     },
     startLoading(state) {
       state.loading = true;
@@ -1346,8 +1338,8 @@ export default new Vuex.Store({
     async login({ commit }, user) {
       commit("startLoading"); // loading window
       // the login process
-      commit("auth_request");
       commit("clearErrors", "loginProcess");
+      commit('logout')
       // create form body for oauth2 login scheme
       var formBody = [];
       for (var property in user) {
@@ -1369,9 +1361,11 @@ export default new Vuex.Store({
 
         const status = response.status;
         const data = await response.json();
+        
 
         // in case of success:
         if (status === 200) {
+          commit('goodNews', 'Log in sucessful!')
           // success!
           let token = {
             access_token: data.access_token,
@@ -1380,20 +1374,21 @@ export default new Vuex.Store({
           sessionStorage.setItem("access_token", token["access_token"]);
           sessionStorage.setItem("token_type", token["token_type"]);
           sessionStorage.setItem("loginTime", Date.now());
+          console.log('set auth credentials to storage')
 
           // user = getters.getUser
 
-          const userRequest = await fetch(settings.backend + "users/me", {
-            headers: {
-              "Content-Type": "application/json; charset=UTF-8",
-              Authorization:
-                sessionStorage.token_type + " " + sessionStorage.access_token,
-            },
-          });
-          const userFromDB = await userRequest.json();
-          console.log(userFromDB);
+          // const userRequest = await fetch(settings.backend + "users/me", {
+          //   headers: {
+          //     "Content-Type": "application/json; charset=UTF-8",
+          //     Authorization:
+          //       sessionStorage.token_type + " " + sessionStorage.access_token,
+          //   },
+          // });
+          // const userFromDB = await userRequest.json();
+          // console.log(userFromDB);
 
-          commit("auth_success", { token: token, user: userFromDB });
+          // commit("auth_success", { token: token, user: userFromDB });
 
           // Fetch user data
           await this.dispatch("fetchUserMe");
@@ -1427,28 +1422,6 @@ export default new Vuex.Store({
         // throw "server error; please try again later";
       }
       commit("stopLoading");
-    },
-    async isLoggedIn({commit,dispatch}) {
-      // checks whether auth is available in sessionstorage
-      // if so, reloads user and other basic info from backend
-      // if not activates logout
-      // returns true/false depending on login status
-      
-      let deltaT = 30 * 60 * 1000; // time until logout
-
-      if (
-          // check if we have sessionStorage auth
-          sessionStorage.getItem("token_type") &&
-          sessionStorage.getItem("access_token") &&
-          sessionStorage.getItem("loginTime") > Date.now() - deltaT
-        ) {
-          console.log("found local storage auth");
-          dispatch('fetchUserMe')
-          return true;
-        } else {
-          console.log('no auth found')
-          commit('logout')
-        }
     },
     async fetchUserMe({ getters, commit, dispatch }) {
       // gets the userdata and stores into store
@@ -1492,12 +1465,13 @@ export default new Vuex.Store({
         let messageData = {};
         let messageHeader = {};
         if (getters.loggedIn) {
+          const token = getters.getAuthToken
           // in case of logged in we want to add authorisation
-          // doesn't hurt if it is not there...
+          // doesn't hurt if it is not requried...
           console.log("logged in, adding auth");
           messageHeader = Object.assign(messageHeader, {
             Authorization:
-              sessionStorage.token_type + " " + sessionStorage.access_token,
+              token.token_type + " " + token.token,
           });
         }
         if (method != "GET") {
@@ -1520,7 +1494,6 @@ export default new Vuex.Store({
 
         if (messageHeader) {
           // add header if not empty
-          console.log("adding hea");
           messageData = Object.assign(messageData, {
             headers: messageHeader,
           });
@@ -1544,11 +1517,15 @@ export default new Vuex.Store({
           }
         } else {
           returnValue = await response.json();
-          console.log(returnValue)
+          console.log(returnValue);
           commit("registerError", {
-            message: "Error " + response.status + " from backend: " + returnValue.detail,
-            component: "APIcall", 
-          })
+            message:
+              "Error " +
+              response.status +
+              " from backend: " +
+              returnValue.detail,
+            component: "APIcall",
+          });
         }
         // } else if (response.status === 401) {
         //   // commit("logout");

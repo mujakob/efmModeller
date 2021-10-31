@@ -1,14 +1,6 @@
 <template>
-  <div
-    style="height:100%;"
-  >
-     
-      
-    <v-card 
-      class="fill-height pa-3"
-      elevation="4"
-      fill-height
-    >
+  <div style="height: 100%">
+    <v-card class="fill-height pa-3" elevation="4" fill-height>
       <v-btn v-on:click="reloadConcepts" class="mb-3">
         <v-icon> mdi-lightbulb-group-outline </v-icon>
         reload concepts
@@ -30,9 +22,7 @@
                 <v-btn small disabled>edit</v-btn>
               </v-col>
               <v-col class="shrink">
-                <v-btn small @click="loadConcept(concept.id)">
-                  load
-                </v-btn>
+                <v-btn small @click="loadConcept(concept.id)"> load </v-btn>
               </v-col>
             </v-row>
             {{ concept.description }}
@@ -44,7 +34,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 
 export default {
   data() {
@@ -53,21 +43,20 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('efm', ['getEFMobjectsByType']),
+    ...mapGetters("efm", ["getEFMobjectsByType"]),
     allConcepts() {
-      return this.getEFMobjectsByType('concepts')
-    }
-
+      return this.getEFMobjectsByType("concepts");
+    },
   },
   methods: {
     async reloadConcepts() {
-      this.$store.dispatch('efm/getConcepts')
+      this.$store.dispatch("efm/getConcepts");
     },
-    loadConcept(id){
-      console.log(id)
-      this.$store.commit("efm/selectConcept", id)
-    }
+    loadConcept(id) {
+      console.log(id);
+      this.$store.commit("efm/selectConcept", id);
+    },
   },
-  mounted() {}
+  mounted() {},
 };
 </script>

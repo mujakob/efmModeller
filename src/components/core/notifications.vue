@@ -8,7 +8,7 @@
     >
       <v-card-title>Error</v-card-title>
       <v-card-subtitle>
-        id: {{ e.id }}
+        <!-- id: {{ e.id }} -->
         <span v-if="e.component">; {{ e.component }}</span>
       </v-card-subtitle>
       <v-card-text>{{ e.message }}</v-card-text>
@@ -20,8 +20,8 @@
     <!-- GOOD NEWS -->
     <v-card
       class="msgbox goodnews green text--white ma-5"
-      v-for="(n, index) in allTheGoodNews"
-      :key="index"
+      v-for="n in allTheGoodNews"
+      :key="n.id"
     >
       <v-card-title>{{ n.message }}</v-card-title>
       <v-card-actions>
@@ -30,21 +30,20 @@
     </v-card>
 
     <!-- clear all button -->
-    <v-btn 
-      v-if="getAllErrors.length"
-      @click="clearAllErrors()"
-    >
+    <v-btn v-if="getAllErrors.length" @click="clearAllErrors()">
       clear all errors
     </v-btn>
   </v-container>
 </template>
 
 <script>
-import { mapGetters} from "vuex";
+import { mapGetters } from "vuex";
 export default {
   name: "notifications",
   data() {
-    return {};
+    return {
+      goodNewsDismissQueue: [],
+    };
   },
   computed: {
     ...mapGetters(["getAllErrors", "allTheGoodNews"]),
@@ -57,8 +56,15 @@ export default {
       this.$store.commit("removeNews", newsID);
     },
     clearAllErrors() {
-      this.$store.commit("clearErrors", null)
-    }
+      this.$store.commit("clearErrors", null);
+      this.$store.commit("removeAllNews");
+    },
+    dismissWithTimeout(id) {
+      // removes a goodNews after 3sec
+      setTimeout(() => {
+        this.dismissGoodNews(id);
+      }, 3000);
+    },
   },
 };
 </script>
@@ -73,10 +79,10 @@ export default {
   z-index: 100;
   bottom: 20px;
   right: 20px;
-  width: 200px;
+  width: 400px;
 }
 
 .msgbox {
-  width: 200px;
+  width: 400px;
 }
 </style>
