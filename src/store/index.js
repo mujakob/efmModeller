@@ -785,8 +785,6 @@ const efmStore = {
       const efmProjectUrl = getters.efmProjectApi;
 
       let putURL = objType.putURL;
-      // replace {id} in url with data.id
-      putURL = putURL.replace("{id}", data.id);
       console.log("putURL: " + putURL);
 
       let newObjectData = await dispatch(
