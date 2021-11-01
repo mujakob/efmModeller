@@ -12,6 +12,7 @@
                 v-if="autoDissmiss"
                 :value="100-(100/5000*autoDissmissTime)"
                 size="15"
+                width="1"
             >
                 x
             </v-progress-circular>

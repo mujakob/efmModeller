@@ -16,7 +16,7 @@ function random_s4() {
 
 const settingsStore = {
   state: {
-    colors: {
+    object_colors: {
       // vuetify colors
       ds: "amber",
       fr: "blue",
@@ -27,28 +27,35 @@ const settingsStore = {
       iw_material: "green",
       iw_signal: "red",
     },
-    iwTypes: [
+    iw_types: [
       'spatial',
       'energy',
       'material',
       'signal'
     ],
-    showEditor: true,
+    show_editor: true,
+    backend_URL: "http://localhost:8000/api/",
   },
   getters: {
     efmObjectColor: (state) => (objType) => {
-      return state.colors[objType];
+      return state.object_colors[objType];
     },
     iwTypes: (state) => {
-      return state.iwTypes
+      return state.iw_types
     },
     showEditor: (state) => {
-      return state.showEditor
+      return state.show_editor
+    },
+    backendURL: (state) => {
+      return state.backend_URL
     }
   },
   mutations: {
     setEditorVisibility(state, editorState) {
-      state.showEditor = editorState 
+      state.show_editor = editorState 
+    },
+    setBackendUrl(state, url) {
+      state.backend_URL = url
     }
   },
   actions: {},
@@ -1322,10 +1329,12 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async login({ commit }, user) {
+    async login({getters, commit }, user) {
       commit("startLoading"); // loading window
       // the login process
       commit("clearMessages", "loginProcess");
+
+      const backend = getters.backendURL
       // create form body for oauth2 login scheme
       var formBody = [];
       for (var property in user) {
@@ -1337,7 +1346,7 @@ export default new Vuex.Store({
 
       try {
         // commit to backend:
-        const response = await fetch(settings.backend + "core/auth/token/", {
+        const response = await fetch(backend + "core/auth/token/", {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -1432,10 +1441,12 @@ export default new Vuex.Store({
 
       let returnValue = false;
 
+      const backend = getters.backendURL
+
       try {
         ////////////////////////////////////////////////////////////
         // assembling URL
-        let urlToFetch = String(settings.backend + url);
+        let urlToFetch = String(backend + url);
         if (query.length) {
           // console.log(query)
           urlToFetch = urlToFetch + "?";

@@ -2,10 +2,26 @@
   <div>
     <h1>Settings</h1>
     <p>More coming soon...</p>
+
+    <!-- show/hide editor in efm tree -->
     <v-switch
       v-model="toggleEditor"
-      label="show editor in EFM tree"
+      label="show edit buttons in EFM tree"
       />
+
+    <!-- change backend URL -->
+    <v-divider />
+    <v-text-field
+      v-model="changeBackendUrl"
+      label="URL for backend API"
+      />
+    <v-btn
+      @click="saveBackendUrl"
+    > save backend URL </v-btn>
+    <v-btn
+      @click="resetBackendUrl"
+    > reset </v-btn>
+
       
     <v-list>
       <v-list-item> version: {{ version }} </v-list-item>
@@ -25,9 +41,11 @@ import settings from "@/settings";
 export default {
   name: "HelloWorld",
 
-  data: () => ({}),
+  data: () => ({
+    localBackendUrl: null,
+  }),
   computed: {
-    ...mapGetters(["showEditor"]),
+    ...mapGetters(["showEditor", "backendURL"]),
 
     toggleEditor: {
       get: function() {
@@ -35,6 +53,19 @@ export default {
       },
       set: function(value) {
         this.$store.commit("setEditorVisibility", value) 
+      }
+    },
+
+    changeBackendUrl: {
+      get: function() {
+        if (this.localBackendUrl) {
+          return this.localBackendUrl
+        } else {
+          return this.backendURL
+        }
+      },
+      set: function(value) {
+        this.localBackendUrl = value
       }
     },
 
@@ -51,5 +82,14 @@ export default {
       return settings.githubLink;
     },
   },
+  methods: {
+    saveBackendUrl() {
+      this.$store.commit("setBackendUrl", this.localBackendUrl)
+      this.resetBackendUrl()
+    },
+    resetBackendUrl() {
+      this.localBackendUrl = null
+    }
+  }
 };
 </script>
