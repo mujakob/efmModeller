@@ -47,7 +47,12 @@ const settingsStore = {
       return state.show_editor
     },
     backendURL: (state) => {
-      return state.backend_URL
+      if (sessionStorage.getItem("backend_url")) {
+        return localStorage.getItem("backend_url")
+      } else {
+        localStorage.setItem('backend_url', state.backend_URL)
+        return state.backend_URL
+      }
     }
   },
   mutations: {
@@ -55,6 +60,7 @@ const settingsStore = {
       state.show_editor = editorState 
     },
     setBackendUrl(state, url) {
+      localStorage.setItem('backend_url', url)
       state.backend_URL = url
     }
   },
@@ -1222,9 +1228,6 @@ export default new Vuex.Store({
     isLoading: (state) => {
       return state.loading;
     },
-    APIloaded: (state) => {
-      return state.APIloaded;
-    },
     allApps: (state) => {
       return state.apps;
     },
@@ -1309,12 +1312,6 @@ export default new Vuex.Store({
     },
     stopLoading(state) {
       state.loading = false;
-    },
-    APIloaded(state) {
-      state.APIloaded = true;
-    },
-    APIunload(state) {
-      state.APIloaded = false;
     },
     // USER MGMT
     setUserMe(state, payload) {
