@@ -34,7 +34,7 @@ const settingsStore = {
       'signal'
     ],
     show_editor: true,
-    backend_URL: "http://localhost:8000/api/",
+    backend_URL: localStorage.getItem("backend_url") || "http://localhost:8000/api/",
   },
   getters: {
     efmObjectColor: (state) => (objType) => {
@@ -47,12 +47,7 @@ const settingsStore = {
       return state.show_editor
     },
     backendURL: (state) => {
-      if (sessionStorage.getItem("backend_url")) {
-        return localStorage.getItem("backend_url")
-      } else {
-        localStorage.setItem('backend_url', state.backend_URL)
         return state.backend_URL
-      }
     }
   },
   mutations: {

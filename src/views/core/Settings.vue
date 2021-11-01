@@ -40,7 +40,7 @@
 import { mapGetters } from "vuex";
 import settings from "@/settings";
 export default {
-  name: "HelloWorld",
+  name: "Settings",
 
   data: () => ({
     localBackendUrl: null,
@@ -69,6 +69,7 @@ export default {
         this.localBackendUrl = value
       }
     },
+
 
     version() {
       return settings.version;
