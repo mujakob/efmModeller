@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-sheet class="pa-5">
     <h1>Settings</h1>
     <p>More coming soon...</p>
 
@@ -10,10 +10,11 @@
       />
 
     <!-- change backend URL -->
-    <v-divider />
     <v-text-field
       v-model="changeBackendUrl"
       label="URL for backend API"
+      style="width:80%; min-width:200px;"
+      outlined
       />
     <v-btn
       @click="saveBackendUrl"
@@ -32,7 +33,7 @@
         github: <a :href="githubLink" target="_blank">{{ githubLink }}</a>
       </v-list-item>
     </v-list>
-  </div>
+  </v-sheet>
 </template>
 
 <script>

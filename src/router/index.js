@@ -56,7 +56,7 @@ const routes = [
   {
     path: "/settings",
     name: "coreSettings",
-    meta: { requiresAuth: true },
+    // meta: { requiresAuth: true },
     component: () =>
       import(
         /* webpackChunkName: "coreSettings" */ "../views/core/Settings.vue"

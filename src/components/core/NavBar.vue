@@ -4,8 +4,20 @@
 
     <v-app-bar-title class="mx-5"> SEDlab </v-app-bar-title>
 
-    <v-btn :to="{ name: 'Home' }"> Home </v-btn>
-    <v-btn @click="newError">error</v-btn>
+    <!-- <v-btn @click="newError">error</v-btn> -->
+
+    <!-- View etc menu -->
+    <span class="mr-auto">
+      <v-menu offset-y >
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn v-bind="attrs" v-on="on"> Menu </v-btn>
+        </template>
+        <v-list dense nav>
+          <v-list-item :to="{ name: 'Home' }"> Projects </v-list-item>
+          <v-list-item :to="{ name: 'coreSettings' }"> Settings </v-list-item>
+        </v-list>
+      </v-menu>
+    </span>
 
     <!-- User menu and login -->
     <span class="ml-auto">
@@ -27,7 +39,6 @@
           <v-list-item :to="{ name: 'userProjects' }">
             My projects
           </v-list-item>
-          <v-list-item :to="{ name: 'coreSettings' }"> Settings </v-list-item>
           <v-list-item>
             <v-btn @click="logUserOut"> logout </v-btn>
           </v-list-item>
