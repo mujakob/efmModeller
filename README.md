@@ -5,6 +5,8 @@ Aims to provide a starting point for frontend development inside the SED team
 
 version 0.2
 
+hosted @netlify as https://boring-nobel-325204.netlify.app/
+[![Netlify Status](https://api.netlify.com/api/v1/badges/41db0763-eeba-4823-a063-baa0af3599e9/deploy-status)](https://app.netlify.com/sites/boring-nobel-325204/deploys)
 
 ## adaptions before use:
 The backend is linked in src/settings.js
