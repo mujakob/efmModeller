@@ -8,18 +8,29 @@
             absolute
             @click="dismiss"
         > 
-            <v-progress-circular 
-                v-if="autoDissmiss"
-                :value="100-(100/5000*autoDissmissTime)"
-                size="15"
-                width="1"
+            <v-avatar
+                left
+                class="grey"
             >
-                x
-            </v-progress-circular>
-            <span v-else>x</span> 
+                <v-progress-circular 
+                    v-if="autoDissmiss"
+                    :value="100-(100/5000*autoDissmissTime)"
+                    size="15"
+                    width="1"
+                >
+                    x
+                </v-progress-circular>
+                <span v-else>x</span>
+            </v-avatar>
         </v-avatar>
         <span class="text-overline"> 
             {{message.type}} 
+        </span>
+        <span 
+            class="text-caption"
+            v-if="message.component"
+        >
+            {{message.component}}: 
         </span>
         <span class="text-caption">
             {{message.message}}
