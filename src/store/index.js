@@ -1076,7 +1076,7 @@ const projectStore = {
         // fetching subprojects
         for (let p of projects) {
           let subproject = await dispatch("apiCall", {
-            url: "core/projects/" + p.id + "/subproject",
+            url: "core/projects/" + p.id + "/subprojects",
           });
           if (subproject) {
             p.subprojects = subproject;
