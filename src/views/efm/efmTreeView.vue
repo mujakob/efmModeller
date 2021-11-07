@@ -1,5 +1,5 @@
 <template>
-  <v-container id="efmTreeView">
+  <v-container id="efmTreeView" class="ma-0 pa-0">
     <!-- <treeDS
             :dsID="treeInfo.top_level_ds_id"
         /> -->

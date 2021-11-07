@@ -1,6 +1,10 @@
 <template>
   <v-row class="fill-height" id="efmWorkspace">
-    <v-col :cols="showConceptPane ? 3 : ''" class="flex-shrink-1 flex-grow-0">
+    <!-- concept pane -->
+    <v-col 
+      :cols="showConceptPane ? 3 : ''" 
+      class="flex-shrink-1 flex-grow-0"
+    >
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn
@@ -21,11 +25,13 @@
       <efm-concepts v-if="showConceptPane" />
     </v-col>
 
+    <!-- rest of the window (tree + details) -->
     <v-col
       :cols="showConceptPane ? 9 : ''"
       style="overflow: auto"
       class="flex-grow-1 flex-shrink-0"
     >
+      <!-- tree view -->
       <efm-tree-view id="efmTreeView" />
 
       <efm-details style="z-index: 100" v-if="objectForDetails" />
