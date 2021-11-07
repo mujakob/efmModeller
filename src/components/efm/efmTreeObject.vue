@@ -10,6 +10,8 @@
         isSelected ? 'selected' : '',
       ]"
       style="z-index: 10"
+      :height="elementHeight"
+      :width="elementWidth"
     >
       <!-- <router-link :to="{
                 name: '${objectType}Detail',
@@ -30,19 +32,23 @@
 
       <!-- element card details  -->
       <v-card-title
-        class="text-h5"
         @click="setForDetails(objectType, objectID)"
-        :class="objectColor"
+        :class="[
+          objectColor,
+          treeObjectSize ? 'text-h6' : 'text-subtitle-2',
+          'text-truncate',
+          !treeObjectSize ? 'pa-1' : 'pa-2',
+          ]"
       >
         {{ theObject.name }}
       </v-card-title>
       <!-- constraints -->
       <v-speed-dial
-        v-model="showConstraints"
+        v-model="showAllConstraints"
         direction="top"
         open-on-hover
         class="mr-3"
-        v-if="constraints.length"
+        v-if="constraints.length && showConstraints"
       >
         <template v-slot:activator>
           <v-chip class="ma-2" :color="constraintColor" text-color="white">
@@ -64,23 +70,6 @@
         </v-chip>
       </v-speed-dial>
 
-      <!-- <v-chip
-        v-if="constraints.length"
-        class="ma-2"
-        :color="constraintColor"
-        text-color="white"
-        @click="showConstraints = !showConstraints"
-      >
-        <v-avatar
-          left
-          :class="[constraintColor, 'darken-4']"
-        >
-          {{constraints.length}}
-        </v-avatar>
-        constraints
-      </v-chip> -->
-
-      <!-- IW (in case DS) as connectors for iw arrows-->
       <div
         v-for="iw in incomingIW"
         :key="iw.id"
@@ -108,17 +97,24 @@
         "
       ></div>
 
-      <!-- </router-link> -->
-      <v-card-text>{{ theObject.description }}</v-card-text>
-      <!-- <v-card-actions> -->
+      <!-- DESCRIPTION -->
+      <v-card-text
+        v-if="treeObjectSize"
+        class="text-truncate pt-0"
+      >
+        {{ theObject.description }}
+      </v-card-text>
+      
+      <!-- EDITING MENU  -->
       <editing-menu
         v-if="showEditor"
         :objectID="objectID"
         :objectType="objectType"
+        :smallEditor="!Boolean(treeObjectSize)"
         @newObject="newObject"
         @deleteObject="deleteObject"
       />
-      <!-- </v-card-actions> -->
+      
     </v-card>
     <ul class="efmSubElements transparent">
       <li v-for="child in children" :key="child" class="transparent">
@@ -150,7 +146,7 @@ export default {
       waitingForNewParent: false,
 
       // show/hide constraints:
-      showConstraints: false,
+      showAllConstraints: false,
     };
   },
   computed: {
@@ -167,7 +163,13 @@ export default {
       "selectedConcept",
     ]),
 
-    ...mapGetters(["efmObjectColor", "showEditor"]),
+    // settings getter
+    ...mapGetters([
+      "efmObjectColor",
+      "showEditor",
+      "treeObjectSize",
+      "showConstraints",
+      ]),
 
     ...mapMutations("efm", ["setObjectForDetails"]),
 
@@ -240,6 +242,32 @@ export default {
     iwColor() {
       return this.efmObjectColor("iw");
     },
+    elementHeight() {
+      // min height for size = small and not elments
+      let height = 30
+      if (this.treeObjectSize) {
+        // min height:
+        height = 100
+      }
+      if (this.showEditor) {
+        height += 50
+      }
+      if (this.showConstraints) {
+        height += 30
+      }
+      return String(height) + 'px'
+    },
+    elementWidth() {
+      switch (this.treeObjectSize) {
+        case 0:
+          return "100px"
+        case 1:
+          return "200px"
+        case 2:
+          return "300px"
+      }
+      return "150px"
+    } 
   },
   props: {
     objectType: {

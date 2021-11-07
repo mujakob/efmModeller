@@ -62,7 +62,42 @@
     </v-tooltip>
 
     <!-- edit buttons -->
-    <v-tooltip bottom v-for="(b, index) in editButtonsObjectSpecific" :key="index">
+    <!-- speed dial in case "small" -->
+    <v-speed-dial
+      v-model="fabEdit"
+      direction="top"
+      open-on-hover
+      class="mr-3"
+      v-if="smallEditor"
+    >
+      <template v-slot:activator>
+        <v-btn v-model="fabEdit" fab x-small>
+          <v-icon v-if="fabEdit"> mdi-close </v-icon>
+          <v-icon v-else> mdi-pencil </v-icon>
+        </v-btn>
+      </template>
+        <!-- buttons -->
+      <v-tooltip bottom v-for="(b, index) in editButtonsObjectSpecific" :key="index">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            fab
+            x-small
+            :to="b.link"
+            @click="handle_function_call(b.function)"
+            v-bind="attrs"
+            v-on="on"
+            class="mr-3"
+            :disabled="b.disabled"
+          >
+            <v-icon> {{ b.icon }} </v-icon>
+          </v-btn>
+        </template>
+        <span>{{ b.text }}</span>
+      </v-tooltip>
+    </v-speed-dial>
+
+    <!-- normel edit buttons -->
+    <v-tooltip bottom v-else v-for="(b, index) in editButtonsObjectSpecific" :key="index">
       <template v-slot:activator="{ on, attrs }">
         <v-btn
           fab
@@ -79,6 +114,8 @@
       </template>
       <span>{{ b.text }}</span>
     </v-tooltip>
+
+
   </v-card-actions>
 </template>
 
@@ -88,6 +125,7 @@ export default {
   data() {
     return {
       fab: false,
+      fabEdit: false,
       editButtons: [
         // {
         //   text: "Show object info",
@@ -167,6 +205,11 @@ export default {
       type: Number,
       required: true,
     },
+    smallEditor: {
+      type: Boolean,
+      required: false,
+      default: false,
+    }
   },
   computed: {
     ...mapGetters("efm", ["efmObjectPossibleParents", "efmObjectPossibleIW"]),

@@ -34,6 +34,9 @@ const settingsStore = {
       'signal'
     ],
     show_editor: true,
+    show_iwLines: true,
+    show_constraints: true,
+    treeObjectSize: 1,        // 0 small, 1 medium, 2 large
     backend_URL: localStorage.getItem("backend_url") || "http://localhost:8000/api/",
   },
   getters: {
@@ -48,6 +51,17 @@ const settingsStore = {
     },
     backendURL: (state) => {
         return state.backend_URL
+    },
+    treeObjectSize: (state) => {
+      return state.treeObjectSize
+    },
+    showConstraints: (state) => {
+      // automatic false when treeObjectSize == 0 (small)
+      if (state.treeObjectSize) {
+        return state.show_constraints
+      } else {
+        return false
+      }
     }
   },
   mutations: {
@@ -57,6 +71,12 @@ const settingsStore = {
     setBackendUrl(state, url) {
       localStorage.setItem('backend_url', url)
       state.backend_URL = url
+    },
+    setTreeObjectSize(state, value) {
+      state.treeObjectSize = value
+    },
+    setConstraintVisibility(state, showC) {
+      state.show_constraints = showC
     }
   },
   actions: {},

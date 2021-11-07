@@ -19,6 +19,10 @@
       </v-menu>
     </span>
 
+    <span class="mr-auto">
+      <view-menu />
+    </span>
+
     <!-- User menu and login -->
     <span class="ml-auto">
       <v-menu offset-y v-if="loggedIn">
@@ -66,8 +70,13 @@
 <script>
 // import utils from '@utils'
 import { mapGetters } from "vuex";
+import ViewMenu from '../viewMenu.vue';
 
 export default {
+  name: 'navbar',
+  components: {
+    ViewMenu,
+  },
   data() {
     return {
       user: null,
