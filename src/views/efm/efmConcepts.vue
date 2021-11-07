@@ -1,6 +1,7 @@
 <template>
-  <div style="height: 100%">
-    <v-card class="fill-height pa-3" elevation="4" fill-height>
+  <div style="max-height: 90vh; position:fixed; width:inherit; 
+    max-width:inherit; top:100px;">
+    <v-card class="fill-height pa-3" elevation="4" style="width:inherit;">
       <v-btn v-on:click="reloadConcepts" class="mb-3">
         <v-icon> mdi-lightbulb-group-outline </v-icon>
         reload concepts

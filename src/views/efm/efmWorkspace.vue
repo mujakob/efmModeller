@@ -13,6 +13,7 @@
             @click="showHideConceptPane()"
             v-bind="attrs"
             v-on="on"
+            style="position:fixed;"
           >
             <v-icon v-if="showConceptPane"> mdi-chevron-left </v-icon>
             <v-icon v-else> mdi-chevron-right </v-icon>
@@ -28,7 +29,7 @@
     <!-- rest of the window (tree + details) -->
     <v-col
       :cols="showConceptPane ? 9 : ''"
-      style="overflow: auto"
+      style="overflow: hidden;"
       class="flex-grow-1 flex-shrink-0"
     >
       <!-- tree view -->

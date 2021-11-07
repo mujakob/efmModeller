@@ -1,9 +1,10 @@
 <template>
-  <v-container id="efmTreeView" class="ma-0 pa-0">
+  <v-container id="efmTreeView" class="ma-0 pa-0" style="position:relative;">
     <!-- <treeDS
             :dsID="treeInfo.top_level_ds_id"
         /> -->
 
+    <!-- top-lvl-ds and subseqent children -->
     <efm-tree-object
       v-if="treeInfo"
       :objectID="treeInfo.top_level_ds_id"
@@ -13,8 +14,14 @@
       style="z-index: 10"
     />
 
-    <iw-line v-for="iw in allIW" :key="iw.id" :theIW="iw" style="z-index: 1" />
+    <!-- iw lines -->
+    <svg
+      style="position:absolute; top:0px; left:0px; height:100%; width:100%;"
+    >
+      <iw-line v-for="iw in allIW" :key="iw.id" :theIW="iw" style="z-index: 1" />
+    </svg>
 
+    <!-- Add / edit menut -->
     <NewDS
       v-if="newObjectPopup"
       :editID="newObjectEditID"
@@ -23,6 +30,7 @@
       @cancel="newObjectPopup = false"
     />
 
+    <!-- delete menu -->
     <DeleteEFMobject
       v-if="toDeletePopup"
       :toDeleteID="toDeleteID"
@@ -60,9 +68,10 @@ export default {
   },
   name: "efmTreeView",
   computed: {
-    ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType"]),
+    ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType", "iwToDraw"]),
     allIW() {
-      return this.getEFMobjectsByType("iw");
+      // return this.getEFMobjectsByType("iw");
+      return this.iwToDraw
     },
   },
   methods: {

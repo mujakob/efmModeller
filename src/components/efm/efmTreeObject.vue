@@ -326,14 +326,19 @@ export default {
     setForDetails(type = this.objectType, id = this.objectID) {
       this.$store.commit("efm/setObjectForDetails", { type: type, id: id });
     },
+    reportIWasReady() {
+      this.$store.commit('efm/iwEndPointsReady', {
+        iwStartPoints: this.outgoingIW,
+        iwEndPoints: this.incomingIW
+      })
+    }
   },
   mounted() {
-    // this.loadTheObject();
-    // },
-    // watch: {
-    //   dna: function() {
-    //     // this.loadTheObject();
-    //   }
+    // informing the store that the iw are ready to draw
+    this.reportIWasReady()
+  },
+  updated() {
+    // this.reportIWasReady()
   },
   watch: {
     // theSelectedObject: function(val) {

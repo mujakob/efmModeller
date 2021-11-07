@@ -1,10 +1,5 @@
 <template>
-  <svg
-    :style="'position: absolute; top: ' + posTop + '; left: ' + posLeft + ';'"
-    :height="curveHeight"
-    :width="curveLengthCorrected"
-    v-if="endElement && startElement"
-  >
+  <g>
     <!-- iw line  -->
     <path
       :d="svgQuadraticCurve"
@@ -45,7 +40,7 @@
     </text>
     <!-- <circle :cx="startX" :cy="startY" r="5" stroke="black" stroke-width="3" fill="none" />
       <circle :cx="endX" :cy="endY" r="5" stroke="black" stroke-width="3" fill="none" /> -->
-  </svg>
+  </g>
 </template>
 
 <script>
@@ -250,33 +245,37 @@ export default {
       }
       let start = this.offset(this.startElement);
       let end = this.offset(this.endElement);
+      this.startX = start.x
+      this.endX = end.x
+      this.startY = start.y
+      this.endY = end.y
 
-      if (start.x < end.x) {
-        // case start is left, end is right
-        // i.e. arrto from left to right
-        this.startX = 0;
-        this.endX = end.x - start.x;
+      // if (start.x < end.x) {
+      //   // case start is left, end is right
+      //   // i.e. arrto from left to right
+      //   this.startX = 0;
+      //   this.endX = end.x - start.x;
 
-        this.posLeft = start.x;
-      } else {
-        this.startX = start.x - end.x;
-        this.endX = 0;
+      //   this.posLeft = start.x;
+      // } else {
+      //   this.startX = start.x - end.x;
+      //   this.endX = 0;
 
-        this.posLeft = end.x;
-      }
-      if (start.y < end.y) {
-        // case start is top, end is bottom
-        // i.e. arrow top down
-        this.startY = 0;
-        this.endY = end.y - start.y;
+      //   this.posLeft = end.x;
+      // }
+      // if (start.y < end.y) {
+      //   // case start is top, end is bottom
+      //   // i.e. arrow top down
+      //   this.startY = 0;
+      //   this.endY = end.y - start.y;
 
-        this.posTop = start.y;
-      } else {
-        this.startY = start.y - end.y;
-        this.endY = 0;
+      //   this.posTop = start.y;
+      // } else {
+      //   this.startY = start.y - end.y;
+      //   this.endY = 0;
 
-        this.posTop = end.y;
-      }
+      //   this.posTop = end.y;
+      // }
     },
 
     selectIW() {
@@ -288,6 +287,7 @@ export default {
   },
   mounted() {
     this.setStartEndPoints();
+    window.addEventListener("resize", this.setStartEndPoints());
   },
 };
 </script>

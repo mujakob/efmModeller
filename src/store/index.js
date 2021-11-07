@@ -515,6 +515,9 @@ const efmStore = {
     selectedConcept: (state) => {
       return state.concepts.find((c) => c.id == state.selectedConcept);
     },
+    iwToDraw: (state) => {
+      return state.iw.filter(iw => iw.to_ds_mounted && iw.from_ds_mounted)
+    }
   },
   mutations: {
     setTreeList(state, payload) {
@@ -659,6 +662,40 @@ const efmStore = {
     selectConcept(state, id) {
       state.selectedConcept = id;
     },
+
+    // specials for iw drawing
+    iwEndPointsReady(state, startAndEndPoints) {
+      const iwStartPoints = startAndEndPoints.iwStartPoints
+      const iwEndPoints = startAndEndPoints.iwEndPoints
+      // console.log(iwStartPoints, iwEndPoints)
+      // both lists contain full iw objects
+      for (let i of iwStartPoints) {
+        // fetch up-to-date from store
+        let startIW = state.iw.find(iw => iw.id == i.id)
+
+        // set starting value
+        startIW.from_ds_mounted = true
+
+        // pop from state
+        state.iw = state.iw.filter(iw => iw.id != i.id)
+        // push the edited one back to store
+        state.iw.push(startIW)
+      }
+
+      // and same for endpoitns
+      for (let i of iwEndPoints) {
+        // fetch up-to-date from store
+        let startIW = state.iw.find(iw => iw.id == i.id)
+
+        // set starting value
+        startIW.to_ds_mounted = true
+
+        // pop from state
+        state.iw = state.iw.filter(iw => iw.id != i.id)
+        // push the edited one back to store
+        state.iw.push(startIW)
+      }
+    }
   },
   actions: {
     async newTree({ commit, dispatch }, { projectID, treeData }) {
