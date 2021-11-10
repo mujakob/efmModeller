@@ -1,5 +1,8 @@
 <template>
-  <v-row class="fill-height" id="efmWorkspace">
+  <v-row 
+    class="fill-height grey lighten-1" 
+    id="efmWorkspace"
+  >
     <!-- concept pane -->
     <v-col 
       :cols="showConceptPane ? 3 : ''" 
@@ -98,6 +101,9 @@ export default {
       console.log("efmTreeWidth " + efmTreeWidth);
       return efmTreeWidth;
     },
+  },
+  beforeMount() {
+    this.$store.commit('efm/unsetTreeData')
   },
   mounted() {
     this.$store.dispatch("efm/getTree", { treeID: this.treeID });

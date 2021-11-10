@@ -72,7 +72,7 @@ export default {
   computed: {
     ...mapGetters(["efmObjectColor"]),
     efmCanvas() {
-      return document.getElementById("efmWorkspace");
+      return document.getElementById("efmTreeView");
     },
 
     startElement() {
@@ -97,7 +97,10 @@ export default {
       //    and y being dx*heightfactor below
       // curve goes through it, and it is where the identifier circle sits
       let xc = this.startX + (this.endX - this.startX) / 2; // middle between start and end
-      let yc = this.startY + this.endY; // lowest point of the two starting points, assuming one of them is 0
+      let yc = this.endY // lowest point of the two starting points,
+      if (this.startY > this.endY) {
+        yc = this.startY  // if the other point is actually lower...
+      }
       yc = yc + xc * this.curveHeightFactor; // adding curveheigtfactor * deltaX
       return { x: xc, y: yc };
     },
@@ -195,9 +198,9 @@ export default {
   },
   methods: {
     offset(element) {
-      var rect = element.getBoundingClientRect(),
-        scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
-        scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      var rect = element.getBoundingClientRect()
+      var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop
 
       var canvasRect = this.efmCanvas.getBoundingClientRect();
 
@@ -208,41 +211,7 @@ export default {
     },
 
     setStartEndPoints() {
-      let timeout = 1000
-      const timestep = 100
-      while (!this.startElement && !this.endElement 
-        && timeout > 0
-        ) {
-        console.log(
-          "Could not find start or end element for iw from DS" +
-            this.theIW.from_ds_id +
-            " to DS" +
-            this.theIW.to_ds_id
-        );
-        setTimeout(() => {}, timestep);
-        timeout = timeout - timestep
-      }
-
-      if (!this.startElement) {
-        this.$store.commit("registerError", {
-          message:
-            "Could not find start element for iw from DS" +
-            this.theIW.from_ds_id +
-            " to DS" +
-            this.theIW.to_ds_id,
-          component: this.$options.name,
-        });
-      }
-      if (!this.endElement) {
-        this.$store.commit("registerError", {
-          message:
-            "Could not find end element for iw from DS" +
-            this.theIW.from_ds_id +
-            " to DS" +
-            this.theIW.to_ds_id,
-          component: this.$options.name,
-        });
-      }
+      
       let start = this.offset(this.startElement);
       let end = this.offset(this.endElement);
       this.startX = start.x
@@ -250,32 +219,6 @@ export default {
       this.startY = start.y
       this.endY = end.y
 
-      // if (start.x < end.x) {
-      //   // case start is left, end is right
-      //   // i.e. arrto from left to right
-      //   this.startX = 0;
-      //   this.endX = end.x - start.x;
-
-      //   this.posLeft = start.x;
-      // } else {
-      //   this.startX = start.x - end.x;
-      //   this.endX = 0;
-
-      //   this.posLeft = end.x;
-      // }
-      // if (start.y < end.y) {
-      //   // case start is top, end is bottom
-      //   // i.e. arrow top down
-      //   this.startY = 0;
-      //   this.endY = end.y - start.y;
-
-      //   this.posTop = start.y;
-      // } else {
-      //   this.startY = start.y - end.y;
-      //   this.endY = 0;
-
-      //   this.posTop = end.y;
-      // }
     },
 
     selectIW() {
@@ -285,9 +228,12 @@ export default {
       });
     },
   },
-  mounted() {
+  beforeMount() {
     this.setStartEndPoints();
+  },
+  mounted() {
     window.addEventListener("resize", this.setStartEndPoints());
+    this.$emit('new:height', this.centrePoint.y)
   },
 };
 </script>

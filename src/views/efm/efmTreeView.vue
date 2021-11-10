@@ -1,5 +1,9 @@
 <template>
-  <v-container id="efmTreeView" class="ma-0 pa-0" style="position:relative;">
+  <v-container 
+    id="efmTreeView" 
+    class="ma-0 pa-0"
+    :style="'position:relative; height:' + canvasHeight + ';'"
+  >
     <!-- <treeDS
             :dsID="treeInfo.top_level_ds_id"
         /> -->
@@ -14,12 +18,7 @@
       style="z-index: 10"
     />
 
-    <!-- iw lines -->
-    <svg
-      style="position:absolute; top:0px; left:0px; height:100%; width:100%;"
-    >
-      <iw-line v-for="iw in allIW" :key="iw.id" :theIW="iw" style="z-index: 1" />
-    </svg>
+    <iw-line-container @new:height="setHeight"/>
 
     <!-- Add / edit menut -->
     <NewDS
@@ -46,12 +45,12 @@ import { mapGetters } from "vuex";
 import DeleteEFMobject from "../../components/efm/deleteEFMobject.vue";
 // import EfmLines from '../../components/efm/efmLines.vue';
 import EfmTreeObject from "../../components/efm/efmTreeObject.vue";
-import IwLine from "../../components/efm/iwLine.vue";
+import IwLineContainer from "../../components/efm/iwLineContainer.vue";
 import NewDS from "../../components/efm/newEditEFMobject.vue";
 // import treeDS from '../../components/efm/treeDS.vue'
 
 export default {
-  components: { EfmTreeObject, NewDS, DeleteEFMobject, IwLine },
+  components: { EfmTreeObject, NewDS, DeleteEFMobject, IwLineContainer },
   data() {
     return {
       // for newObject popup:
@@ -64,15 +63,13 @@ export default {
       toDeleteType: null,
       toDeleteID: null,
       toDeletePopup: null,
+
+      canvasHeight: "100%",
     };
   },
   name: "efmTreeView",
   computed: {
-    ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType", "iwToDraw"]),
-    allIW() {
-      // return this.getEFMobjectsByType("iw");
-      return this.iwToDraw
-    },
+    ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType",]),
   },
   methods: {
     newObject(data) {
@@ -103,6 +100,11 @@ export default {
       // cancelling connections:
       this.$store.commit("efm/cancelSelection");
     },
+    setHeight(newHeight) {
+        this.canvasHeight = newHeight
+        console.log('newHeight: ' + newHeight)
+        this.$emit('new:height', newHeight)
+    }
   },
   mounted() {
     let self = this;

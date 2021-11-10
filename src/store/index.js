@@ -297,7 +297,7 @@ const efmStore = {
           for (let i in objInfo) {
             if (typeof objInfo[i] == "string") {
               objInfo[i] = objInfo[i].replace("{id}", id);
-              console.log(objInfo[i])
+             // console.log(objInfo[i])
             }
           }
         }
@@ -321,19 +321,19 @@ const efmStore = {
       // for (let c of objType.children) {
       if (objInfo.children) {
         const c = objInfo.children
-        console.log('collecting children of type ' + c.type + ' for ' + type + id)
+       // console.log('collecting children of type ' + c.type + ' for ' + type + id)
         // c is like {type: 'ds', list: 'is_solved_by_id'}
         if (Array.isArray(theObject[c.list])) {
           // here we iterate through the objects children list
           for (let cc of theObject[c.list]) {
             // c.list contains IDs when backend is set correctly
 
-            console.log('found child ' + c.type + cc + ' of ' + type + id)
+           // console.log('found child ' + c.type + cc + ' of ' + type + id)
             allChildrenList.push({ type: c.type, id: cc });
           }
         } else {
           // in case that c.list is no list but just a single value, e.g. top_level_ds_id
-          console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
+         // console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
           allChildrenList.push({ type: c.type, id: theObject[c.list] });
         }
       }
@@ -417,7 +417,7 @@ const efmStore = {
       }
 
       let possibleForIW = getters.getEFMobjectsByType("ds");
-      console.log(alternativeDS);
+     // console.log(alternativeDS);
       possibleForIW = possibleForIW.filter(
         (ds) => !alternativeDS.includes(ds.id)
       );
@@ -548,6 +548,13 @@ const efmStore = {
     setAllConcepts(state, concepts) {
       state.concepts = concepts;
     },
+    unsetTreeData(state) {
+      state.treeInfo = null
+      state.ds = []
+      state.fr = []
+      state.c = []
+      state.iw = []
+    },
 
     // new EFM Objects
     newTree(state, data) {
@@ -582,14 +589,14 @@ const efmStore = {
     editDS(state, data) {
       // finds the object via data.id and substitutes it with data
       let index = state.ds.indexOf(state.ds.find((obj) => obj.id == data.id));
-      console.log("editDS index " + String(index));
+     // console.log("editDS index " + String(index));
 
       if (index != -1) {
         // console.log('please compare')
         // console.log(state.ds[index])
         // console.log(data)
         state.ds[index] = data;
-        console.log(state.ds[index]);
+       // console.log(state.ds[index]);
       }
     },
     editFR(state, data) {
@@ -653,12 +660,10 @@ const efmStore = {
       state.objectsToSelect = [];
       state.objectWaitingForNewParent = null;
     },
-
     setObjectForDetails(state, object) {
       // object is {type, iw}
       state.objectForDetails = object;
     },
-
     selectConcept(state, id) {
       state.selectedConcept = id;
     },
@@ -695,7 +700,7 @@ const efmStore = {
         // push the edited one back to store
         state.iw.push(startIW)
       }
-    }
+    },
   },
   actions: {
     async newTree({ commit, dispatch }, { projectID, treeData }) {
@@ -747,7 +752,7 @@ const efmStore = {
       if (!theTree) {
         theTree = [];
       } else {
-        console.log(theTree);
+       // console.log(theTree);
         commit("setAllEfmObjects", theTree);
         commit("goodNews", 'Loaded all elements of "' + theTree.name + '".', {
           root: true,
@@ -758,7 +763,7 @@ const efmStore = {
       // updates all current tree data via /trees/id/data
       // actually only wrapts getTree with the current tree's ID
       let treeID = getters.treeInfo.id;
-      console.log("ffs: " + treeID);
+     // console.log("ffs: " + treeID);
       dispatch("getTree", { treeID });
       commit("goodNews", "updated all tree items", { root: true });
     },
@@ -772,7 +777,7 @@ const efmStore = {
         },
         { root: true }
       );
-      console.log(allConcepts);
+     // console.log(allConcepts);
       // in case error, so it's not "undefined" but empty array
       if (!allConcepts) {
         allConcepts = [];
@@ -793,7 +798,7 @@ const efmStore = {
         },
         { root: true }
       );
-      console.log(deletion);
+     // console.log(deletion);
       if (deletion) {
         commit("deleteProject", treeID, { root: true });
         commit("goodNews", "Deleted " + objType.string, { root: true });
@@ -812,9 +817,9 @@ const efmStore = {
       var newObject = null;
 
       try {
-        console.log('api call "newEFMobject"');
-        console.log("objecttype: " + objType.short);
-        console.log(data);
+       // console.log('api call "newEFMobject"');
+       // console.log("objecttype: " + objType.short);
+       // console.log(data);
         newObject = await dispatch(
           "apiCall",
           {
@@ -850,8 +855,8 @@ const efmStore = {
       const objType = getters.EFMobjectInfo(type, data.id);
       const efmProjectUrl = getters.efmProjectApi;
 
-      let putURL = objType.putURL;
-      console.log("putURL: " + putURL);
+      // let putURL = objType.putURL;
+     // console.log("putURL: " + putURL);
 
       let newObjectData = await dispatch(
         "apiCall",
@@ -893,7 +898,7 @@ const efmStore = {
         },
         { root: true }
       );
-      console.log(deletion);
+     // console.log(deletion);
       if (deletion) {
         // commit(objType.deleteMutation, id);
         commit(
@@ -957,24 +962,24 @@ const efmStore = {
       const efmProjectUrl = getters.efmProjectApi;
 
       if (getters.whoIsWaitingForParent) {
-        console.log("setting new parent via GUI");
+       // console.log("setting new parent via GUI");
 
         // fetch who is waiting for the parent
         const theObj = getters.whoIsWaitingForParent;
 
         // fetch object info for that
         const objectInfo = getters.EFMobjectInfo(theObj.type, theObj.id);
-        const parentType = objectInfo.parentType;
+        // const parentType = objectInfo.parentType;
 
-        console.log(
-          "setting new parents for" +
-            theObj.type +
-            theObj.id +
-            ", parentType: " +
-            parentType +
-            ", new parent: " +
-            newRelation.name
-        );
+       // console.log(
+        //   "setting new parents for" +
+        //     theObj.type +
+        //     theObj.id +
+        //     ", parentType: " +
+        //     parentType +
+        //     ", new parent: " +
+        //     newRelation.name
+        // );
 
         let submitData = { query: "new_parent_id", value: newRelation.id };
 
@@ -1107,7 +1112,7 @@ const projectStore = {
   actions: {
     async fetchProjects({ commit, dispatch }) {
       // fetches all projects of user into store
-      console.log("fetching projects");
+     // console.log("fetching projects");
       let projects = await dispatch("apiCall", {
         url: "core/projects/",
         query: [
@@ -1126,8 +1131,8 @@ const projectStore = {
       let trees = await dispatch("apiCall", {
         url: "efm/trees/",
       });
-      console.log("trees: ");
-      console.log(trees);
+     // console.log("trees: ");
+     // console.log(trees);
 
       if (projects) {
         // fetching subprojects
@@ -1142,13 +1147,13 @@ const projectStore = {
             }
           }
         }
-        console.log(projects);
+       // console.log(projects);
         commit("addAllProjects", projects);
       }
     },
     async newProject({ dispatch, commit, rootGetters }, { projectName }) {
       const currentUser = rootGetters.getUser;
-      console.log(currentUser);
+     // console.log(currentUser);
       if (!currentUser) {
         commit("registerError", {
           message: "you are not logged in!",
@@ -1247,7 +1252,7 @@ export default new Vuex.Store({
     },
     loggedIn: (state, getters) => {
       // returns true or false
-      let deltaT = state.loginSessionDuration
+      // let deltaT = state.loginSessionDuration
       let token = getters.getAuthToken
       
 
@@ -1258,13 +1263,13 @@ export default new Vuex.Store({
         // check if the 30min session is over:
         // (sessionStorage.getItem("loginTime") +deltaT) > Date.now()
       ) {
-        console.log("found session storage auth");
+       // console.log("found session storage auth");
         return true;
       } else {
-        console.log("login check failed");
-        console.log(sessionStorage.getItem("token_type"));
-        console.log(sessionStorage.getItem("access_token"));
-        console.log(sessionStorage.getItem("loginTime") > Date.now() - deltaT);
+       // console.log("login check failed");
+       // console.log(sessionStorage.getItem("token_type"));
+       // console.log(sessionStorage.getItem("access_token"));
+       // console.log(sessionStorage.getItem("loginTime") > Date.now() - deltaT);
         return false;
       }
     },
@@ -1293,7 +1298,7 @@ export default new Vuex.Store({
       sessionStorage.removeItem("access_token");
       this.commit('setAuthToken', null)
       this.commit('goodNews', "you have been logged out!")
-      console.log("logged out...");
+     // console.log("logged out...");
     },
     setAuthToken(state, token) {
       state.token = token
@@ -1325,7 +1330,7 @@ export default new Vuex.Store({
         error.message = payload.message
         error.component = payload.component
       }
-      console.log("error by " + error.component + ": " + error.message);
+     // console.log("error by " + error.component + ": " + error.message);
       state.messages.push(error);
     },
     removeMessage(state, errorID) {
@@ -1336,15 +1341,15 @@ export default new Vuex.Store({
       // use with caution when component = ''
       // otherwise to clear all errors of a component, e.g. 'LoginProcess'
       if (componentName) {
-        console.log("deleting errors of " + componentName);
+       // console.log("deleting errors of " + componentName);
         state.messages = state.messages.filter((e) => e.component != componentName);
       } else {
-        console.log("deleting ALL messages");
+       // console.log("deleting ALL messages");
         state.messages = [];
       }
     },
     goodNews(state, payload) {
-      console.log("good news: " + payload);
+     // console.log("good news: " + payload);
       // first create ID
       let newsID = random_s4();
       while (state.messages.filter((e) => e.id == newsID).length) {
@@ -1416,7 +1421,7 @@ export default new Vuex.Store({
             token_type: data.token_type,
           };
           commit("setAuthToken", token)
-          console.log('set auth credentials to storage')
+         // console.log('set auth credentials to storage')
 
           // user = getters.getUser
 
@@ -1484,9 +1489,9 @@ export default new Vuex.Store({
       // generalised apiCall to the backend, can be used for GET/POST/PUT/DELETE
       commit("startLoading"); // loading icon
 
-      console.log(url);
-      console.log(method);
-      console.log(objectData);
+     // console.log(url);
+     // console.log(method);
+     // console.log(objectData);
 
       let returnValue = false;
 
@@ -1512,7 +1517,7 @@ export default new Vuex.Store({
           const token = getters.getAuthToken
           // in case of logged in we want to add authorisation
           // doesn't hurt if it is not requried...
-          console.log("logged in, adding auth");
+         // console.log("logged in, adding auth");
           messageHeader = Object.assign(messageHeader, {
             Authorization:
               token.token_type + " " + token.access_token,
@@ -1543,9 +1548,9 @@ export default new Vuex.Store({
           });
         }
 
-        console.log(messageData);
+       // console.log(messageData);
         // console.log(settings.backend)
-        console.log(urlToFetch);
+       // console.log(urlToFetch);
 
         const response = await fetch(urlToFetch, messageData);
 
@@ -1553,7 +1558,7 @@ export default new Vuex.Store({
         if (response.status === 200) {
           //console.log(response.json())
           returnValue = await response.json();
-          console.log(returnValue);
+         // console.log(returnValue);
           // console.log(returnValue)
           if (!returnValue) {
             // in case of e.g. deletion where there is only 200 as response
@@ -1561,7 +1566,7 @@ export default new Vuex.Store({
           }
         } else {
           returnValue = await response.json();
-          console.log(returnValue);
+         // console.log(returnValue);
           commit("registerError", {
             message:
               "Error " +
@@ -1613,7 +1618,7 @@ export default new Vuex.Store({
     async fetchApps({ commit, dispatch }) {
       // Fetches the app info from the backend and stores into store.apps
       for (let a of settings.apps) {
-        console.log("fetching app " + a);
+       // console.log("fetching app " + a);
         const theApp = await dispatch("apiCall", {
           url: "core/apps/" + a,
           method: "GET",

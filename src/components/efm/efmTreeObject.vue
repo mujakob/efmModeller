@@ -331,14 +331,12 @@ export default {
         iwStartPoints: this.outgoingIW,
         iwEndPoints: this.incomingIW
       })
-    }
+      // console.log('i reported my IW as ready')
+    },
   },
   mounted() {
     // informing the store that the iw are ready to draw
     this.reportIWasReady()
-  },
-  updated() {
-    // this.reportIWasReady()
   },
   watch: {
     // theSelectedObject: function(val) {
