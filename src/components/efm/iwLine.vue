@@ -52,7 +52,7 @@ export default {
   data() {
     return {
       // curveheight determines how far out from the lower point we bend the curve, factorised with curve length
-      curveHeightFactor: 1,
+      curveHeightFactor: 0.4,
       identifierRadius: 10,
       lineWidth: 3,
       arrowHeight: 10,
@@ -204,9 +204,11 @@ export default {
 
       var canvasRect = this.efmCanvas.getBoundingClientRect();
 
+      console.log(rect.top, scrollTop, canvasRect.top)
+
       return {
-        y: rect.top + scrollTop - canvasRect.top,
-        x: rect.left + scrollLeft - canvasRect.left,
+        y: rect.top - canvasRect.top,
+        x: rect.left - canvasRect.left,
       };
     },
 

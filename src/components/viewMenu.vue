@@ -18,6 +18,12 @@
                 />
             </v-list-item>
             <v-list-item>
+                 <v-switch
+                    v-model="toggleIW"
+                    label="show iw lines in EFM tree"
+                />
+            </v-list-item>
+            <v-list-item>
                 <v-slider
                     v-model="objectSize"
                     min="0"
@@ -47,6 +53,7 @@ export default {
             "showEditor",
             "treeObjectSize",
             "showConstraints",
+            "showIW",
         ]),
          toggleEditor: {
             get: function() {
@@ -62,6 +69,14 @@ export default {
             },
             set: function(value) {
                 this.$store.commit("setConstraintVisibility", value) 
+            }
+        },
+        toggleIW: {
+            get: function() {
+                return this.showIW
+            },
+            set: function(value) {
+                this.$store.commit("setIWvisibility", value) 
             }
         },
         objectSize: {

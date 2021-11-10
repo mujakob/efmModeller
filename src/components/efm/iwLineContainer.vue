@@ -34,7 +34,7 @@ export default {
           this.svgWidth = newWidth
       },
       setHeight(newHeight) {
-          this.svgHeight = newHeight
+          this.svgHeight = newHeight + 'px'
           this.$emit('new:height', this.svgHeight)
       }
   }

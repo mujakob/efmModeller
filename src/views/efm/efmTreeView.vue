@@ -18,7 +18,10 @@
       style="z-index: 10"
     />
 
-    <iw-line-container @new:height="setHeight"/>
+    <iw-line-container 
+      v-if="showIW"
+      @new:height="setHeight"
+    />
 
     <!-- Add / edit menut -->
     <NewDS
@@ -70,6 +73,8 @@ export default {
   name: "efmTreeView",
   computed: {
     ...mapGetters("efm", ["treeInfo", "getEFMobjectsByType",]),
+    // settings:
+    ...mapGetters(['showIW'])
   },
   methods: {
     newObject(data) {

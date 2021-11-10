@@ -62,6 +62,9 @@ const settingsStore = {
       } else {
         return false
       }
+    },
+    showIW: (state) => {
+      return state.show_iwLines
     }
   },
   mutations: {
@@ -77,6 +80,9 @@ const settingsStore = {
     },
     setConstraintVisibility(state, showC) {
       state.show_constraints = showC
+    },
+    setIWvisibility(state, showIW) {
+      state.show_iwLines = showIW
     }
   },
   actions: {},
