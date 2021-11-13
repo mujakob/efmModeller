@@ -139,8 +139,9 @@ const efmStore = {
           is_top_level_DS: "is_top_level_ds",
         },
         children: {
-          list: "requires_functions_id",
+          // list: "requires_functions_id",
           type: "fr",
+          id_string: 'rf_id'
         },
         childrenString: 'requires functions',
         parentType: "fr",
@@ -168,8 +169,9 @@ const efmStore = {
           tree_id: "tree_id",
         },
         children: {
-          list: "is_solved_by_id",
+          // list: "is_solved_by_id",
           type: "ds",
+          id_string: 'isb_id'
         },
         childrenString: 'is solved by',
         parentType: "ds",
@@ -249,6 +251,7 @@ const efmStore = {
         children: {
           list: "top_level_ds_id",
           type: "ds",
+          id_string: 'tree_id'
         },
       },
     },
@@ -327,19 +330,22 @@ const efmStore = {
       // for (let c of objType.children) {
       if (objInfo.children) {
         const c = objInfo.children
-       // console.log('collecting children of type ' + c.type + ' for ' + type + id)
-        // c is like {type: 'ds', list: 'is_solved_by_id'}
-        if (Array.isArray(theObject[c.list])) {
+        if (c.id_string) {
+          // case: c = {type, id_string}
+          // i.e. children need to be found by their parent_id
+          allChildrenList = state[c.type].filter(child => child[c.id_string] == id)
+        } else if (Array.isArray(theObject[c.list])) {
+          // c is like {type: 'ds', list: 'is_solved_by_id'}
           // here we iterate through the objects children list
           for (let cc of theObject[c.list]) {
             // c.list contains IDs when backend is set correctly
 
-           // console.log('found child ' + c.type + cc + ' of ' + type + id)
+          // console.log('found child ' + c.type + cc + ' of ' + type + id)
             allChildrenList.push({ type: c.type, id: cc });
           }
         } else {
           // in case that c.list is no list but just a single value, e.g. top_level_ds_id
-         // console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
+        // console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
           allChildrenList.push({ type: c.type, id: theObject[c.list] });
         }
       }
@@ -1143,13 +1149,15 @@ const projectStore = {
       if (projects) {
         // fetching subprojects
         for (let p of projects) {
-          let subproject = await dispatch("apiCall", {
+          let subprojects = await dispatch("apiCall", {
             url: "core/projects/" + p.id + "/subprojects",
           });
-          if (subproject) {
-            p.subprojects = subproject;
+          if (subprojects) {
+            // filter to EFM subprojects only
+            subprojects = subprojects.filter(sp => sp.application_sid == "MOD.EFM")
+            p.subprojects = subprojects;
             for (let sp of p.subprojects) {
-              sp.tree = trees.find((t) => t.subproject_id == sp.id);
+              sp.tree = trees.find((t) => t.id == sp.native_project_id);
             }
           }
         }

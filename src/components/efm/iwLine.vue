@@ -199,7 +199,7 @@ export default {
   methods: {
     offset(element) {
       var rect = element.getBoundingClientRect()
-      var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+      // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
       var scrollTop = window.pageYOffset || document.documentElement.scrollTop
 
       var canvasRect = this.efmCanvas.getBoundingClientRect();

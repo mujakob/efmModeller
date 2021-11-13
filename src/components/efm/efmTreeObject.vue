@@ -156,6 +156,7 @@ export default {
       "objectIsToBeSelected",
       "theSelectedObject",
       "EFMobjectInfo",
+      "efmObjectChildren",
       "incomingIWofDS",
       "outgoingIWofDS",
       "isSelectedForDetails",
@@ -178,23 +179,24 @@ export default {
     },
     children() {
       // returns id of children as list
-      if (this.objectType === "ds") {
-        // returning FR objects
-        return this.theObject.requires_functions_id;
-      } else if (this.objectType === "fr") {
-        // returning DS objects
-        let children = this.theObject.is_solved_by_id;
+      return this.efmObjectChildren(this.objectType, this.objectID)
+      // if (this.objectType === "ds") {
+      //   // returning FR objects
+      //   return this.theObject.requires_functions_id;
+      // } else if (this.objectType === "fr") {
+      //   // returning DS objects
+      //   let children = this.theObject.is_solved_by_id;
 
-        if (this.selectedConcept) {
-          // in case concept is loaded we filter by dna:
-          const dna = this.selectedConcept.dna;
-          console.log("dna: " + dna);
-          children = children.filter((child) => dna.includes(child));
-        }
-        return children;
-      } else {
-        return "";
-      }
+      //   if (this.selectedConcept) {
+      //     // in case concept is loaded we filter by dna:
+      //     const dna = this.selectedConcept.dna;
+      //     console.log("dna: " + dna);
+      //     children = children.filter((child) => dna.includes(child));
+      //   }
+      //   return children;
+      // } else {
+      //   return "";
+      // }
     },
     otherType() {
       if (this.objectType === "ds") {
