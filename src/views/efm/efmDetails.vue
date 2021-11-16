@@ -196,6 +196,7 @@ export default {
       const childIDs = this.efmObjectChildren(this.objectType, this.objectID);
       let childObjects = []
       for (const c of childIDs) {
+        console.log(c)
         let cObject = this.getEFMobjectByID(c.type, c.id)
         cObject.objType = c.type   // needed cause usually the objects don't know their own type -.-
         childObjects.push(cObject)

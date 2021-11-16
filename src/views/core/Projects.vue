@@ -234,23 +234,22 @@ export default {
         projectID: this.newTreeProject,
         treeData: treeData,
       });
-      if (theNewTree) {
-        this.newTreeName = "";
-        this.newTreeDescription = "";
-        this.newTreeProject = 0;
-        this.newTreeDialog = false;
+      // reset values
+      this.newTreeName = "";
+      this.newTreeDescription = "";
+      this.newTreeProject = 0;
+      this.newTreeDialog = false;
 
-        // reset dialog:
-        this.newTreeDialog = false;
-        this.newTreeProject = null;
+      // reset dialog:
+      this.newTreeDialog = false;
+      this.newTreeProject = null;
 
-        if (forward) {
-          // directly push to the new tree view:
-          this.$router.push({
-            name: "efm-project",
-            params: { treeID: theNewTree.id },
-          });
-        }
+      if (forward && theNewTree) {
+        // directly push to the new tree view:
+        this.$router.push({
+          name: "efm-project",
+          params: { treeID: theNewTree.id },
+        });
       }
     },
     newTreeForProject(projectID) {

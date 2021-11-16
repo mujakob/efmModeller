@@ -333,7 +333,10 @@ const efmStore = {
         if (c.id_string) {
           // case: c = {type, id_string}
           // i.e. children need to be found by their parent_id
-          allChildrenList = state[c.type].filter(child => child[c.id_string] == id)
+          let childObjectList = state[c.type].filter(child => child[c.id_string] == id)
+          for (let cObject of childObjectList) {
+            allChildrenList.push({ type: c.type, id: cObject.id })
+          }
         } else if (Array.isArray(theObject[c.list])) {
           // c is like {type: 'ds', list: 'is_solved_by_id'}
           // here we iterate through the objects children list
@@ -731,6 +734,9 @@ const efmStore = {
       );
       if (theTree) {
         commit("addTree", theTree);
+        return theTree
+      } else {
+        return false
       }
     },
     async getTreeList({ commit, dispatch }) {
@@ -1038,52 +1044,6 @@ const efmStore = {
       }
       // update all tree data, since doing it one by one is too complicated:
       dispatch("updateTree");
-    },
-
-    // start of the class based approach, WIP
-    efmObject({ getters }, { type, id }) {
-      class efmObject {
-        constructor(type, id) {
-          this.type = type;
-          this.id = id;
-
-          this.objInfo = getters.objectInfo(type, id);
-
-          let objData = getters.getEFMobjectByID(type, id);
-
-          for (const [key, value] of objData) {
-            this[key] = value;
-          }
-        }
-
-        get parent() {
-          if (this.parentID) {
-            return getters.getEFMobjectByID(
-              this.objInfo.parentType,
-              this.parentID
-            );
-          } else {
-            return null;
-          }
-        }
-
-        get children() {
-          if (this.children.list) {
-            let childrenList = [];
-            for (let c of this[this.children.list]) {
-              const child = getters.getEFMobjectByID(this.children.type, c);
-              childrenList.push(child);
-            }
-            return childrenList;
-          } else {
-            return null;
-          }
-        }
-      }
-
-      const newEFMobject = new efmObject(type, id);
-
-      return newEFMobject;
     },
   },
   modules: {},
@@ -1589,6 +1549,7 @@ export default new Vuex.Store({
               returnValue.detail,
             component: "APIcall",
           });
+          console.error('[API call]' + returnValue.detail)
         }
         // } else if (response.status === 401) {
         //   // commit("logout");

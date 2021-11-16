@@ -117,10 +117,10 @@
       
     </v-card>
     <ul class="efmSubElements transparent">
-      <li v-for="child in children" :key="child" class="transparent">
+      <li v-for="child in children" :key="child.id" class="transparent">
         <efm-tree-object
           :objectType="otherType"
-          :objectID="child"
+          :objectID="child.id"
           :dna="dna"
           @newObject="newObject"
           @deleteObject="deleteObject"
@@ -305,7 +305,7 @@ export default {
 
     // GUI selection mecahnism
     async selectThis() {
-      console.log("selected " + this.objectType + this.objectID);
+      // console.log("selected " + this.objectType + this.objectID);
       this.$store.commit("efm/objectIsSelected", {
         type: this.objectType,
         id: this.objectID,
@@ -326,6 +326,7 @@ export default {
     //   this.$store.commit("efm/setObjectForDetails", {type: this.objectType, id: this.objectID})
     // },
     setForDetails(type = this.objectType, id = this.objectID) {
+      // console.log('select_for_details: type: ' + type + ' id: ' + id)
       this.$store.commit("efm/setObjectForDetails", { type: type, id: id });
     },
     reportIWasReady() {
