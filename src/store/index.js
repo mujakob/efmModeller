@@ -650,6 +650,9 @@ const efmStore = {
     deleteC(state, id) {
       state.c = state.c.filter((obj) => obj.id != id);
     },
+    deleteTree(state, id) {
+      state.treeList = state.treeList.filter((obj) => obj.id != id);
+    },
 
     // gui based selections
     setObjectsToSelect(state, objectList) {
@@ -808,6 +811,7 @@ const efmStore = {
     },
     async deleteTree({ getters, commit, dispatch }, { treeID }) {
       const objType = getters.EFMobjectInfo("tree", treeID);
+      // delete call returns rowcount, i.e. number of affected rows
       let deletion = await dispatch(
         "apiCall",
         {
@@ -818,8 +822,8 @@ const efmStore = {
       );
      // console.log(deletion);
       if (deletion) {
-        commit("deleteProject", treeID, { root: true });
-        commit("goodNews", "Deleted " + objType.string, { root: true });
+        commit("deleteTree", treeID);
+        commit("goodNews", "Deleted Tree. Deleted a total of " + deletion + " EFM elements", { root: true });
       }
       return deletion;
     },

@@ -7,23 +7,20 @@
             left
             absolute
             @click="dismiss"
+            color="grey"
         > 
-            <v-avatar
-                left
-                class="grey"
+           
+            <v-progress-circular 
+                v-if="autoDissmiss"
+                :value="100-(100/5000*autoDissmissTime)"
+                size="15"
+                width="1"
             >
-                <v-progress-circular 
-                    v-if="autoDissmiss"
-                    :value="100-(100/5000*autoDissmissTime)"
-                    size="15"
-                    width="1"
-                >
-                    x
-                </v-progress-circular>
-                <span v-else>x</span>
-            </v-avatar>
+                x
+            </v-progress-circular>
+            <span v-else>x</span>
         </v-avatar>
-        <span class="text-overline"> 
+        <span class="text-overline" style="overflow: truncate;"> 
             {{message.type}} 
         </span>
         <span 
