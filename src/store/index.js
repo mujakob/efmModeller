@@ -924,7 +924,7 @@ const efmStore = {
       if (deletion) {
         // commit(objType.deleteMutation, id);
         commit(
-          "goodNews", "Deleted " + objType.string,
+          "goodNews", "Deleted " + objType.string + ". A total of " + deletion + " EFM elements have been deleted.",
           { root: true }
         );
         // // and we need to check all the children too, since they probably need to be removed as well
@@ -935,7 +935,7 @@ const efmStore = {
 
         // update all tree data, since doing it one by one is too complicated:
         dispatch("updateTree");
-        return true;
+        return deletion;
       }
     },
     async updateEFMobject({ getters, commit, dispatch }, { type, id }) {
@@ -1270,6 +1270,7 @@ export default new Vuex.Store({
   mutations: {
     logout(state) {
       // remove user-related objects from store:
+      this.commit('clearAllMessages')
       state.apps = [];
       state.user = null;
       sessionStorage.removeItem("token_type");
@@ -1318,13 +1319,12 @@ export default new Vuex.Store({
     clearMessages(state, componentName) {
       // use with caution when component = ''
       // otherwise to clear all errors of a component, e.g. 'LoginProcess'
-      if (componentName) {
        // console.log("deleting errors of " + componentName);
-        state.messages = state.messages.filter((e) => e.component != componentName);
-      } else {
+      state.messages = state.messages.filter((e) => e.component != componentName);
+    },
+    clearAllMessages(state) {
        // console.log("deleting ALL messages");
-        state.messages = [];
-      }
+      state.messages = [];
     },
     goodNews(state, payload) {
      // console.log("good news: " + payload);
