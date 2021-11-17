@@ -300,16 +300,16 @@ const efmStore = {
       (state) =>
       (type, id = null) => {
         // returns info about EFM Object
-        console.log('EFM OBJECT INFO ')
-        console.log(type, id)
+        // console.log('EFM OBJECT INFO ')
+        // console.log(type, id)
         let objInfo =  JSON.parse(JSON.stringify(state.efmObjects[type]))
         // if id is set, it already adapts all URLs and other info which is ID sensitive:
         if (id) {
           for (let i in objInfo) {
             if (typeof objInfo[i] == "string") {
-              console.log(objInfo[i]  + String(id))
+              // console.log(objInfo[i]  + String(id))
               objInfo[i] = objInfo[i].replace("{id}", String(id));
-              console.log(objInfo[i])
+              // console.log(objInfo[i])
             }
           }
         }
