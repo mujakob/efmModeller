@@ -300,13 +300,16 @@ const efmStore = {
       (state) =>
       (type, id = null) => {
         // returns info about EFM Object
-        let objInfo = state.efmObjects[type];
+        console.log('EFM OBJECT INFO ')
+        console.log(type, id)
+        let objInfo =  JSON.parse(JSON.stringify(state.efmObjects[type]))
         // if id is set, it already adapts all URLs and other info which is ID sensitive:
         if (id) {
           for (let i in objInfo) {
             if (typeof objInfo[i] == "string") {
-              objInfo[i] = objInfo[i].replace("{id}", id);
-             // console.log(objInfo[i])
+              console.log(objInfo[i]  + String(id))
+              objInfo[i] = objInfo[i].replace("{id}", String(id));
+              console.log(objInfo[i])
             }
           }
         }
@@ -651,7 +654,8 @@ const efmStore = {
       state.c = state.c.filter((obj) => obj.id != id);
     },
     deleteTree(state, id) {
-      state.treeList = state.treeList.filter((obj) => obj.id != id);
+      console.log('deleting tree from store')
+      state.treeList = state.treeList.filter(obj => obj.id != id);
     },
 
     // gui based selections
@@ -820,9 +824,11 @@ const efmStore = {
         },
         { root: true }
       );
+      console.log(deletion)
      // console.log(deletion);
       if (deletion) {
         commit("deleteTree", treeID);
+        commit("deleteSubproject", treeID, {root: true,})
         commit("goodNews", "Deleted Tree. Deleted a total of " + deletion + " EFM elements", { root: true });
       }
       return deletion;
@@ -911,6 +917,9 @@ const efmStore = {
 
       const objType = getters.EFMobjectInfo(type, id);
       const efmProjectUrl = getters.efmProjectApi;
+
+      console.log(type, id)
+      console.log(objType)
 
       let deletion = await dispatch(
         "apiCall",
@@ -1082,6 +1091,12 @@ const projectStore = {
 
       if (index != -1) {
         state.projects[index].name = payload.name;
+      }
+    },
+    deleteSubproject(state, treeID) {
+      // have to iterate through all projects....
+      for (let p of state.projects){
+        p.subprojects = p.subprojects.filter(sp => (sp.tree && sp.tree.id != treeID))
       }
     },
   },
@@ -1526,9 +1541,9 @@ export default new Vuex.Store({
           });
         }
 
-       // console.log(messageData);
-        // console.log(settings.backend)
-       // console.log(urlToFetch);
+       console.log(messageData);
+       console.log(settings.backend)
+       console.log(urlToFetch);
 
         const response = await fetch(urlToFetch, messageData);
 

@@ -137,7 +137,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-btn
                           fab
-                          @click="toDeleteID = sp.id"
+                          @click="toDeleteID = sp.tree.id"
                           x-small
                           color="red"
                           v-bind="attrs"
@@ -166,7 +166,7 @@
     <v-dialog v-model="deleteTreeDialog" max-width="95%">
       <v-card>
         <v-card-title>Deleting EFM-subproject</v-card-title>
-        Are you sure you want to delete {{ toDeleteID }}?
+        Are you sure you want to delete project with ID {{ toDeleteID }}?
         <v-card-actions>
           <v-btn @click="toDeleteID = null"> cancel </v-btn>
           <v-btn @click="deleteSubproject"> delete </v-btn>
