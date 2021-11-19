@@ -266,6 +266,9 @@ const efmStore = {
 
     // selected concept
     selectedConcept: null, // id
+
+    // for iw drawing
+    DSmounted: [],   // {list of DS id which are moutned in the tree} 
   },
   getters: {
     efmProjectApi: (state) => {
@@ -534,7 +537,12 @@ const efmStore = {
       return state.concepts.find((c) => c.id == state.selectedConcept);
     },
     iwToDraw: (state) => {
-      return state.iw.filter(iw => iw.to_ds_mounted && iw.from_ds_mounted)
+      // return state.iw.filter(iw => iw.to_ds_mounted && iw.from_ds_mounted)
+      const iwToDraw = state.iw.filter( iw => 
+        (state.DSmounted.includes(iw.from_ds_id) &&
+        state.DSmounted.includes(iw.to_ds_id) )
+      )
+      return iwToDraw
     }
   },
   mutations: {
@@ -698,30 +706,41 @@ const efmStore = {
       // both lists contain full iw objects
       for (let i of iwStartPoints) {
         // fetch up-to-date from store
-        let startIW = state.iw.find(iw => iw.id == i.id)
+        if (!state.iwMountedEndpoints.startpoints.find(iw => iw == i))
+        state.iwMountedEndpoints.startpoints.push(i)
+        // let startIW = state.iw.find(iw => iw.id == i.id)
 
-        // set starting value
-        startIW.from_ds_mounted = true
+        // // set starting value
+        // startIW.from_ds_mounted = true
 
-        // pop from state
-        state.iw = state.iw.filter(iw => iw.id != i.id)
-        // push the edited one back to store
-        state.iw.push(startIW)
+        // // pop from state
+        // state.iw = state.iw.filter(iw => iw.id != i.id)
+        // // push the edited one back to store
+        // state.iw.push(startIW)
       }
 
       // and same for endpoitns
       for (let i of iwEndPoints) {
+        if (!state.iwMountedEndpoints.endpoints.find(iw => iw == i))
+        state.iwMountedEndpoints.endpoints.push(i)
         // fetch up-to-date from store
-        let startIW = state.iw.find(iw => iw.id == i.id)
+        // let startIW = state.iw.find(iw => iw.id == i.id)
 
-        // set starting value
-        startIW.to_ds_mounted = true
+        // // set starting value
+        // startIW.to_ds_mounted = true
 
-        // pop from state
-        state.iw = state.iw.filter(iw => iw.id != i.id)
-        // push the edited one back to store
-        state.iw.push(startIW)
+        // // pop from state
+        // state.iw = state.iw.filter(iw => iw.id != i.id)
+        // // push the edited one back to store
+        // state.iw.push(startIW)
       }
+    },
+    reportDSasMounted(state, dsID) {
+      console.log('ds noted, ' + dsID)
+      state.DSmounted.push(dsID)
+    },
+    reportDSunmounted(state, dsID) {
+      state.DSmounted = state.DSmounted.filter(ds => ds.id != dsID)
     },
   },
   actions: {

@@ -58,6 +58,9 @@ export default {
       arrowHeight: 10,
       arrowWidth: 10,
 
+      startDSelement: document.getElementById("ds" + this.theIW.from_ds_id),
+      endDSelement: document.getElementById("ds" + this.theIW.to_ds_id),
+      
       startX: 0,
       startY: 0,
       endX: 0,
@@ -75,18 +78,52 @@ export default {
       return document.getElementById("efmTreeView");
     },
 
-    startElement() {
-      return document.getElementById("iwFrom" + this.theIW.id);
+    // startElement() {
+    //   return document.getElementById("iwFrom" + this.theIW.id);
+    // },
+    startPoint() {
+      // returns bottom-right corner of the from_ds_id DS
+      // const startDSelement = document.getElementById("ds" + this.theIW.from_ds_id)
+
+      var rect = this.startDSelement.getBoundingClientRect()
+      // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop
+
+      var canvasRect = this.efmCanvas.getBoundingClientRect();
+
+      console.log(rect.top, scrollTop, canvasRect.top)
+
+      return {
+        y: rect.bottom - canvasRect.top,
+        x: rect.right - canvasRect.left,
+      };
     },
-    endElement() {
-      return document.getElementById("iwTo" + this.theIW.id);
+    endPoint() {
+      // returns bottom-right corner of the from_ds_id DS
+      // const endDSelement = document.getElementById("ds" + this.theIW.to_ds_id)
+
+      var rect = this.endDSelement.getBoundingClientRect()
+      // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop
+
+      var canvasRect = this.efmCanvas.getBoundingClientRect();
+
+      console.log(rect.top, scrollTop, canvasRect.top)
+
+      return {
+        y: rect.bottom - canvasRect.top,
+        x: rect.left - canvasRect.left,
+      };
     },
+    // endElement() {
+    //   return document.getElementById("iwTo" + this.theIW.id);
+    // },
     curveHeight() {
-      const deltaY = this.startY - this.endY;
+      const deltaY = this.startPoint.y - this.endPoint.y;
       return Math.abs(deltaY) + this.curveHeightFactor * this.curveLength;
     },
     curveLength() {
-      return Math.abs(this.endX - this.startX);
+      return Math.abs(this.endPoint.x - this.startPoint.x);
     },
     curveLengthCorrected() {
       // adds linewidth and arrow width
@@ -96,18 +133,18 @@ export default {
       // centrePoint (Pc) is defined by central on x distance between start and end
       //    and y being dx*heightfactor below
       // curve goes through it, and it is where the identifier circle sits
-      let xc = this.startX + (this.endX - this.startX) / 2; // middle between start and end
-      let yc = this.endY // lowest point of the two starting points,
-      if (this.startY > this.endY) {
-        yc = this.startY  // if the other point is actually lower...
+      let xc = this.startPoint.x + (this.endPoint.x - this.startPoint.x) / 2; // middle between start and end
+      let yc = this.endPoint.y // lowest point of the two starting points,
+      if (this.startPoint.y > this.endPoint.y) {
+        yc = this.startPoint.y  // if the other point is actually lower...
       }
       yc = yc + xc * this.curveHeightFactor; // adding curveheigtfactor * deltaX
       return { x: xc, y: yc };
     },
     controlPoint() {
       // control point for quadratic bezier curve based on start, centrePoint, end
-      let x1 = 2 * this.centrePoint.x - this.startX / 2 - this.endX / 2;
-      let y1 = 2 * this.centrePoint.y - this.startY / 2 - this.endY / 2;
+      let x1 = 2 * this.centrePoint.x - this.startPoint.x / 2 - this.endPoint.x / 2;
+      let y1 = 2 * this.centrePoint.y - this.startPoint.y / 2 - this.endPoint.y / 2;
       return { x: x1, y: y1 };
     },
     svgCubicCurve() {
@@ -118,32 +155,32 @@ export default {
       const controlY = this.curveHeight;
       // console.log(
       //   "startX" +
-      //     this.startX +
+      //     this.startPoint.x +
       //     " startY " +
-      //     this.startY +
+      //     this.startPoint.y +
       //     " endX " +
-      //     this.endX +
+      //     this.endPoint.x +
       //     " endY " +
-      //     this.endY +
+      //     this.endPoint.y +
       //     " controlY" +
       //     controlY
       // );
       // corrections for arrow display:
-      let endX_corrected = this.endX + this.arrowWidth / 2;
-      let endY_corrected = this.endY + this.arrowHeight;
+      let endX_corrected = this.endPoint.x + this.arrowWidth / 2;
+      let endY_corrected = this.endPoint.y + this.arrowHeight;
 
       // returns the svg string for a bezier curve
       return (
         "M " +
-        this.startX +
+        this.startPoint.x +
         " " +
-        this.startY +
+        this.startPoint.y +
         " C " +
-        this.startX +
+        this.startPoint.x +
         " " +
         controlY +
         ", " +
-        this.endX +
+        this.endPoint.x +
         " " +
         controlY +
         ", " +
@@ -155,14 +192,14 @@ export default {
     svgQuadraticCurve() {
       // curve through start, centrepoint, end
       // corrections for arrow display:
-      let endX_corrected = this.endX + this.arrowWidth / 2;
-      let endY_corrected = this.endY + this.arrowHeight;
+      let endX_corrected = this.endPoint.x + this.arrowWidth / 2;
+      let endY_corrected = this.endPoint.y + this.arrowHeight;
 
       const curveString =
         "M " +
-        this.startX +
+        this.startPoint.x +
         " " +
-        this.startY +
+        this.startPoint.y +
         " Q " +
         this.controlPoint.x +
         " " +
@@ -179,8 +216,8 @@ export default {
       const height = this.arrowHeight;
       const width = this.arrowWidth;
       // The tip
-      const tX = this.endX + this.arrowWidth / 2;
-      const tY = this.endY + this.lineWidth;
+      const tX = this.endPoint.x + this.arrowWidth / 2;
+      const tY = this.endPoint.y + this.lineWidth;
       let points = tX + ", " + tY + " ";
       points =
         points + String(tX - width / 2) + ", " + String(tY + height) + " ";
@@ -197,31 +234,31 @@ export default {
     },
   },
   methods: {
-    offset(element) {
-      var rect = element.getBoundingClientRect()
-      // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
-      var scrollTop = window.pageYOffset || document.documentElement.scrollTop
+    // offset(element) {
+    //   var rect = element.getBoundingClientRect()
+    //   // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+    //   var scrollTop = window.pageYOffset || document.documentElement.scrollTop
 
-      var canvasRect = this.efmCanvas.getBoundingClientRect();
+    //   var canvasRect = this.efmCanvas.getBoundingClientRect();
 
-      console.log(rect.top, scrollTop, canvasRect.top)
+    //   console.log(rect.top, scrollTop, canvasRect.top)
 
-      return {
-        y: rect.top - canvasRect.top,
-        x: rect.left - canvasRect.left,
-      };
-    },
+    //   return {
+    //     y: rect.top - canvasRect.top,
+    //     x: rect.left - canvasRect.left,
+    //   };
+    // },
 
-    setStartEndPoints() {
+    // setStartEndPoints() {
       
-      let start = this.offset(this.startElement);
-      let end = this.offset(this.endElement);
-      this.startX = start.x
-      this.endX = end.x
-      this.startY = start.y
-      this.endY = end.y
+    //   let start = this.offset(this.startElement);
+    //   let end = this.offset(this.endElement);
+    //   this.startPoint.x = start.x
+    //   this.endPoint.x = end.x
+    //   this.startPoint.y = start.y
+    //   this.endPoint.y = end.y
 
-    },
+    // },
 
     selectIW() {
       this.$store.commit("efm/setObjectForDetails", {
@@ -231,11 +268,11 @@ export default {
     },
   },
   beforeMount() {
-    this.setStartEndPoints();
+    // this.setStartEndPoints();
   },
   mounted() {
-    window.addEventListener("resize", this.setStartEndPoints());
-    this.$emit('new:height', this.centrePoint.y)
+    // window.addEventListener("resize", this.setStartEndPoints());
+    // this.$emit('new:height', this.centrePoint.y)
   },
 };
 </script>

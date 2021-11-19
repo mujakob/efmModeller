@@ -2,6 +2,7 @@
   <div
     v-if="theObject"
     :id="objectType + objectID"
+    :ref="objectType + objectID"
     class="efmElement transparent"
   >
     <v-card
@@ -147,6 +148,7 @@ export default {
 
       // show/hide constraints:
       showAllConstraints: false,
+
     };
   },
   computed: {
@@ -336,15 +338,35 @@ export default {
       })
       // console.log('i reported my IW as ready')
     },
+    reportDSasMounted() {
+      if (this.objectType == 'ds') {
+        this.$store.commit('efm/reportDSasMounted', this.objectID)
+      }
+    }
   },
   mounted() {
     // informing the store that the iw are ready to draw
-    this.reportIWasReady()
+    this.reportDSasMounted()
+    console.log('mounted ' + this.objectType + this.objectID )
+  },
+  updated() {
+    // // informing the store that the iw are ready to draw
+    // this.reportIWasReady()
   },
   watch: {
-    // theSelectedObject: function(val) {
-    //   if (val && this.theSelectedObject) {
-    //     console.log('FOUND ONE')
+    // incomingIW: function(val) {
+    //   // checking if any of the incoming iw has not been registered yet
+    //   if (val && val.filter(iw => !iw.from_ds_mounted)) {
+    //     console.log('update incoming iw ' + this.objectType + this.objectID )
+    //     this.reportIWasReady()
+    //   }
+    // },
+    // outgoingIW: function(val) {
+    //   // checking if any of the incoming iw has not been registered yet
+    //   if (val && val.filter(iw => !iw.to_ds_mounted)) {
+    //     console.log(val)
+    //     console.log('update outgoing iw ' + this.objectType + this.objectID )
+    //     this.reportIWasReady()
     //   }
     // }
   },
