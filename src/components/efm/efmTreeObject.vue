@@ -71,7 +71,7 @@
         </v-chip>
       </v-speed-dial>
 
-      <div
+      <!-- <div
         v-for="iw in incomingIW"
         :key="iw.id"
         :id="'iwTo' + iw.id"
@@ -96,7 +96,7 @@
           width: 2px;
           background-color: green;
         "
-      ></div>
+      ></div> -->
 
       <!-- DESCRIPTION -->
       <v-card-text
@@ -181,7 +181,7 @@ export default {
     },
     children() {
       // returns id of children as list
-      return this.efmObjectChildren(this.objectType, this.objectID)
+      let children = this.efmObjectChildren(this.objectType, this.objectID)
       // if (this.objectType === "ds") {
       //   // returning FR objects
       //   return this.theObject.requires_functions_id;
@@ -189,13 +189,13 @@ export default {
       //   // returning DS objects
       //   let children = this.theObject.is_solved_by_id;
 
-      //   if (this.selectedConcept) {
-      //     // in case concept is loaded we filter by dna:
-      //     const dna = this.selectedConcept.dna;
-      //     console.log("dna: " + dna);
-      //     children = children.filter((child) => dna.includes(child));
-      //   }
-      //   return children;
+      if (this.objectType === "fr" && this.selectedConcept) {
+        // in case concept is loaded we filter by dna:
+        const dna = this.selectedConcept.dna;
+        console.log("dna: " + dna);
+        children = children.filter((child) => dna.includes(child.id));
+      }
+      return children;
       // } else {
       //   return "";
       // }
@@ -215,20 +215,20 @@ export default {
     objectInfo() {
       return this.EFMobjectInfo(this.objectType, this.objectID);
     },
-    incomingIW() {
-      if (this.objectType == "ds") {
-        return this.incomingIWofDS(this.objectID);
-      } else {
-        return [];
-      }
-    },
-    outgoingIW() {
-      if (this.objectType == "ds") {
-        return this.outgoingIWofDS(this.objectID);
-      } else {
-        return [];
-      }
-    },
+    // incomingIW() {
+    //   if (this.objectType == "ds") {
+    //     return this.incomingIWofDS(this.objectID);
+    //   } else {
+    //     return [];
+    //   }
+    // },
+    // outgoingIW() {
+    //   if (this.objectType == "ds") {
+    //     return this.outgoingIWofDS(this.objectID);
+    //   } else {
+    //     return [];
+    //   }
+    // },
     constraints() {
       return this.efmObjectConstraints(this.objectType, this.objectID);
     },
@@ -243,9 +243,9 @@ export default {
     constraintColor() {
       return this.efmObjectColor("c");
     },
-    iwColor() {
-      return this.efmObjectColor("iw");
-    },
+    // iwColor() {
+    //   return this.efmObjectColor("iw");
+    // },
     elementHeight() {
       // min height for size = small and not elments
       let height = 30
