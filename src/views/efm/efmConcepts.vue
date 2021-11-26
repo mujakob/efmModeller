@@ -3,12 +3,14 @@
     max-width:inherit; top:100px;">
     <v-card class="fill-height pa-3" elevation="4" style="width:inherit;">
       <v-btn v-on:click="reloadConcepts" class="mb-3">
-        <v-icon> mdi-lightbulb-group-outline </v-icon>
-        reload concepts
+        regenerate concepts
       </v-btn>
-      <v-btn v-on:click="loadConcept(null)" class="mb-3">
-        <v-icon> mdi-book-sync </v-icon>
-        reload project tree
+      <v-btn 
+        v-on:click="loadConcept(null)" 
+        class="mb-3"
+        :disabled="!selectedConcept"
+        >
+        unload concept
       </v-btn>
 
       <v-expansion-panels v-if="allConcepts">
@@ -44,7 +46,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters("efm", ["getEFMobjectsByType"]),
+    ...mapGetters("efm", ["getEFMobjectsByType", "selectedConcept"]),
     allConcepts() {
       return this.getEFMobjectsByType("concepts");
     },
