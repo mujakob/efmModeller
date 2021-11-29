@@ -4,7 +4,7 @@
     <path
       :d="svgQuadraticCurve"
       :stroke="lineColor"
-      :stroke-width="lineWidth"
+      :stroke-width="lineWidthSelected"
       fill="none"
     />
 
@@ -75,6 +75,8 @@ export default {
   },
   computed: {
     ...mapGetters(["efmObjectColor"]),
+    ...mapGetters('efm', ['isSelectedForDetails']),
+
     efmCanvas() {
       return document.getElementById("efmTreeView");
     },
@@ -233,6 +235,12 @@ export default {
     iwType_shorthand() {
       return this.theIW.iw_type.substring(0, 1);
     },
+    isSelected() {
+      return this.isSelectedForDetails('iw', this.theIW.id)
+    },
+    lineWidthSelected() {
+      return this.lineWidth + 2*this.isSelected
+    }
   },
   methods: {
     selectIW() {

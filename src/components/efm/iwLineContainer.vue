@@ -3,6 +3,7 @@
     <svg
       :style="'height:'+svgHeight+'; width:'+svgWidth+';'"
       id="iwContainer"
+      :key="updateIW"
     >
       <iw-line 
         v-for="iw in allIW" 
@@ -28,9 +29,30 @@ export default {
   },
   components: { iwLine },
   computed: {
-    ...mapGetters("efm", ["iwToDraw", "getEFMobjectsByType"]),
+    ...mapGetters("efm", [
+      "iwToDraw",
+      "getEFMobjectsByType",
+      "selectedConcept"
+      ]),
+
+    ...mapGetters(["showEditor", "treeObjectSize", "showConstraints", "showIW"]),
+
     allIW() {
       return this.getEFMobjectsByType('iw')
+    },
+    updateIW(){
+      // collects all store variables which should, when changed, trigger iw rerendering
+
+      // efm triggers
+      let updateVal = Number(this.iwToDraw.length) 
+      if (this.selectedConcept) {
+        updateVal += this.selectedConcept.id
+      }
+
+      // settings triggers
+      updateVal += Number(this.showEditor) + Number(this.showConstraints) + Number(this.treeObjectSize)
+
+      return updateVal
     }
     
   },
