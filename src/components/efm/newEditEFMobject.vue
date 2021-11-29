@@ -10,12 +10,14 @@
         label="name"
         :rules="rules.notEmpty"
         v-if="showField('name')"
+        ref="nameField"
       />
 
       <v-text-field 
         v-model="newObject.description"
         label="Description" 
         v-if="showField('description')"
+        ref="descriptionField"
       />
 
       <v-combobox
@@ -23,6 +25,7 @@
         v-if="showField('iw_type')"
         label="iw type"
         :items="iwTypes"
+        ref="iwTypeField"
       />
 
       <!-- <v-select
@@ -157,7 +160,7 @@ export default {
       } else {
         return false
       }
-    }
+    },
   },
   props: {
     editID: { type: Number, default: null }, // if set, we are in editing mode
@@ -199,6 +202,11 @@ export default {
   },
   mounted() {
     this.loadObject();
+    this.$nextTick(() => {
+      setTimeout(() => {
+        this.$refs.nameField.$refs.input.focus()
+      })
+    })
   },
 };
 </script>
