@@ -56,7 +56,7 @@ export default {
       this.$store.dispatch("efm/getConcepts");
     },
     loadConcept(id) {
-      console.log(id);
+      // console.log(id);
       this.$store.commit("efm/selectConcept", id);
     },
   },

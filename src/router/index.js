@@ -82,8 +82,9 @@ const routes = [
       ),
   },
   {
-    path: "/login",
+    path: "/login/:forwardURL",
     name: "login",
+    props: true,
     component: () =>
       import(/*webpackChunkName: "login" */ "../components/core/login"),
   },
@@ -105,12 +106,13 @@ const router = new VueRouter({
 // navigation guards (needed for login:)
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    console.log("need for Logged In");
-    console.log("log in status" + store.getters.loggedIn);
+    console.log("need for Logged In to reach " + to.fullPath);
+    console.log("log in status " + store.getters.loggedIn);
     // need to login!
     if (!store.getters.loggedIn) {
       next({
         name: "login",
+        params: { forwardURL: to.fullPath },
       });
     } else {
       next();

@@ -192,7 +192,7 @@ export default {
       if (this.objectType === "fr" && this.selectedConcept) {
         // in case concept is loaded we filter by dna:
         const dna = this.selectedConcept.dna;
-        console.log("dna: " + dna);
+        // console.log("dna: " + dna);
         children = children.filter((child) => dna.includes(child.id));
       }
       return children;
@@ -347,28 +347,15 @@ export default {
   mounted() {
     // informing the store that the iw are ready to draw
     this.reportDSasMounted()
-    console.log('mounted ' + this.objectType + this.objectID )
+    // console.log('mounted ' + this.objectType + this.objectID )
   },
   updated() {
     // // informing the store that the iw are ready to draw
     // this.reportIWasReady()
+    // console.log('updated ' + this.objectType + this.objectID )
   },
-  watch: {
-    // incomingIW: function(val) {
-    //   // checking if any of the incoming iw has not been registered yet
-    //   if (val && val.filter(iw => !iw.from_ds_mounted)) {
-    //     console.log('update incoming iw ' + this.objectType + this.objectID )
-    //     this.reportIWasReady()
-    //   }
-    // },
-    // outgoingIW: function(val) {
-    //   // checking if any of the incoming iw has not been registered yet
-    //   if (val && val.filter(iw => !iw.to_ds_mounted)) {
-    //     console.log(val)
-    //     console.log('update outgoing iw ' + this.objectType + this.objectID )
-    //     this.reportIWasReady()
-    //   }
-    // }
+  beforeUnmount() {
+    // console.log('abut to unmount ' + this.objectType + this.objectID)
   },
 };
 </script>

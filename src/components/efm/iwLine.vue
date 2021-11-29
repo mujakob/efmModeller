@@ -1,5 +1,5 @@
 <template>
-  <g>
+  <g v-if="canBeRendered">
     <!-- iw line  -->
     <path
       :d="svgQuadraticCurve"
@@ -51,6 +51,7 @@ export default {
   name: "iwLine",
   data() {
     return {
+      canBeRendered: (document.getElementById('ds'+this.theIW.to_ds_id) && document.getElementById('ds'+this.theIW.from_ds_id)),
       // curveheight determines how far out from the lower point we bend the curve, factorised with curve length
       curveHeightFactor: 0.4,
       identifierRadius: 10,
@@ -87,11 +88,11 @@ export default {
 
       var rect = this.startDSelement.getBoundingClientRect()
       // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
-      var scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      // var scrollTop = window.pageYOffset || document.documentElement.scrollTop
 
       var canvasRect = this.efmCanvas.getBoundingClientRect();
 
-      console.log(rect.top, scrollTop, canvasRect.top)
+      // console.log(rect.top, scrollTop, canvasRect.top)
 
       return {
         y: rect.bottom - canvasRect.top,
@@ -104,11 +105,11 @@ export default {
 
       var rect = this.endDSelement.getBoundingClientRect()
       // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
-      var scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      // var scrollTop = window.pageYOffset || document.documentElement.scrollTop
 
       var canvasRect = this.efmCanvas.getBoundingClientRect();
 
-      console.log(rect.top, scrollTop, canvasRect.top)
+      // console.log(rect.top, scrollTop, canvasRect.top)
 
       return {
         y: rect.bottom - canvasRect.top,
@@ -234,32 +235,6 @@ export default {
     },
   },
   methods: {
-    // offset(element) {
-    //   var rect = element.getBoundingClientRect()
-    //   // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
-    //   var scrollTop = window.pageYOffset || document.documentElement.scrollTop
-
-    //   var canvasRect = this.efmCanvas.getBoundingClientRect();
-
-    //   console.log(rect.top, scrollTop, canvasRect.top)
-
-    //   return {
-    //     y: rect.top - canvasRect.top,
-    //     x: rect.left - canvasRect.left,
-    //   };
-    // },
-
-    // setStartEndPoints() {
-      
-    //   let start = this.offset(this.startElement);
-    //   let end = this.offset(this.endElement);
-    //   this.startPoint.x = start.x
-    //   this.endPoint.x = end.x
-    //   this.startPoint.y = start.y
-    //   this.endPoint.y = end.y
-
-    // },
-
     selectIW() {
       this.$store.commit("efm/setObjectForDetails", {
         type: "iw",
@@ -267,12 +242,13 @@ export default {
       });
     },
   },
-  beforeMount() {
-    // this.setStartEndPoints();
-  },
-  mounted() {
-    // window.addEventListener("resize", this.setStartEndPoints());
-    // this.$emit('new:height', this.centrePoint.y)
-  },
+  watch: {
+    canBeRendered: function () {
+      Vue.nextTick(() => { 
+        this.startDSelement = document.getElementById("ds" + this.theIW.from_ds_id)
+        this.endDSelement = document.getElementById("ds" + this.theIW.to_ds_id)
+       });
+    },
+  }
 };
 </script>
