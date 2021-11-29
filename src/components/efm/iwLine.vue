@@ -250,13 +250,5 @@ export default {
       });
     },
   },
-  watch: {
-    canBeRendered: function () {
-      Vue.nextTick(() => { 
-        this.startDSelement = document.getElementById("ds" + this.theIW.from_ds_id)
-        this.endDSelement = document.getElementById("ds" + this.theIW.to_ds_id)
-       });
-    },
-  }
 };
 </script>

@@ -520,7 +520,7 @@ const efmStore = {
       return state.objectForDetails;
     },
     isSelectedForDetails: (state) => (type, id) => {
-      if (state.objectForDetails === { type: type, id: id }) {
+      if (state.objectForDetails && state.objectForDetails.type == type && state.objectForDetails.id == id) {
         return true;
       } else {
         return false;
