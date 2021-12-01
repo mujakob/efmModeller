@@ -204,7 +204,9 @@ export default {
     this.loadObject();
     this.$nextTick(() => {
       setTimeout(() => {
-        this.$refs.nameField.$refs.input.focus()
+        if (this.$refs.nameField) {
+          this.$refs.nameField.$refs.input.focus()
+        }
       })
     })
   },

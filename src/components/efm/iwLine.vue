@@ -58,6 +58,8 @@ export default {
       lineWidth: 3,
       arrowHeight: 10,
       arrowWidth: 10,
+      arrowDistance: 10, // distance of arrow from element edge
+      lineMinHeight: 30,
 
       startDSelement: document.getElementById("ds" + this.theIW.from_ds_id),
       endDSelement: document.getElementById("ds" + this.theIW.to_ds_id),
@@ -98,7 +100,7 @@ export default {
 
       return {
         y: rect.bottom - canvasRect.top,
-        x: rect.right - canvasRect.left,
+        x: rect.right - canvasRect.left - this.arrowDistance,
       };
     },
     endPoint() {
@@ -115,7 +117,7 @@ export default {
 
       return {
         y: rect.bottom - canvasRect.top,
-        x: rect.left - canvasRect.left,
+        x: rect.left - canvasRect.left + this.arrowDistance,
       };
     },
     // endElement() {
@@ -141,7 +143,12 @@ export default {
       if (this.startPoint.y > this.endPoint.y) {
         yc = this.startPoint.y  // if the other point is actually lower...
       }
-      yc = yc + xc * this.curveHeightFactor; // adding curveheigtfactor * deltaX
+      const deltaX = Math.abs(this.startPoint.x - this.endPoint.x)
+      let lineHeight = deltaX * this.curveHeightFactor
+      if (lineHeight < this.lineMinHeight) {
+        lineHeight = this.lineMinHeight
+      }
+      yc = yc + lineHeight; // adding curveheigtfactor * deltaX
       return { x: xc, y: yc };
     },
     controlPoint() {
@@ -232,6 +239,7 @@ export default {
     lineColor() {
       return this.efmObjectColor("iw_" + this.theIW.iw_type);
     },
+
     iwType_shorthand() {
       return this.theIW.iw_type.substring(0, 1);
     },
@@ -250,5 +258,13 @@ export default {
       });
     },
   },
+  mounted() {
+    this.$emit('new:height', this.centrePoint.y + this.identifierRadius)
+    this.$emit('new:width', this.centrePoint.x + this.curveLength/2)
+  },
+  updated() {
+    this.$emit('new:height', this.centrePoint.y + this.identifierRadius)
+    this.$emit('new:width', this.centrePoint.x + this.curveLength/2)
+  }
 };
 </script>

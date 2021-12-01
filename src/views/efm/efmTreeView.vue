@@ -2,7 +2,7 @@
   <v-container 
     id="efmTreeView" 
     class="ma-0 pa-0"
-    :style="'position:relative; height:' + canvasHeight + ';'"
+    :style="'position:relative; min-height:' + canvasHeight + 'px;'"
   >
     <!-- <treeDS
             :dsID="treeInfo.top_level_ds_id"
@@ -67,7 +67,7 @@ export default {
       toDeleteID: null,
       toDeletePopup: null,
 
-      canvasHeight: "100%",
+      canvasHeight: 100,
     };
   },
   name: "efmTreeView",
@@ -105,11 +105,13 @@ export default {
       // cancelling connections:
       this.$store.commit("efm/cancelSelection");
     },
+    
     setHeight(newHeight) {
+      if (newHeight > this.canvasHeight){
         this.canvasHeight = newHeight
-        console.log('newHeight: ' + newHeight)
-        this.$emit('new:height', newHeight)
-    }
+        this.$emit('new:height', this.canvasHeight)
+      }
+    },
   },
   mounted() {
     let self = this;

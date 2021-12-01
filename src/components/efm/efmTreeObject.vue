@@ -70,34 +70,7 @@
           {{ c.name }}
         </v-chip>
       </v-speed-dial>
-
-      <!-- <div
-        v-for="iw in incomingIW"
-        :key="iw.id"
-        :id="'iwTo' + iw.id"
-        style="
-          position: absolute;
-          bottom: 2px;
-          left: 2px;
-          height: 2px;
-          width: 2px;
-          background-color: green;
-        "
-      ></div>
-      <div
-        v-for="iw in outgoingIW"
-        :key="iw.id"
-        :id="'iwFrom' + iw.id"
-        style="
-          position: absolute;
-          bottom: 2px;
-          right: 2px;
-          height: 2px;
-          width: 2px;
-          background-color: green;
-        "
-      ></div> -->
-
+      
       <!-- DESCRIPTION -->
       <v-card-text
         v-if="treeObjectSize"
@@ -318,7 +291,16 @@ export default {
       );
       // resetting the selection mode
       if (newRelationIsSet) {
+        console.log(newRelationIsSet)
         this.$store.commit("efm/setObjectsToSelect", []);
+        if (newRelationIsSet.edit) {
+          const data = newRelationIsSet.edit
+          console.log(data)
+           this.$emit("newObject", {
+            objectType: data.objectType,
+            editID: data.editID,
+          });
+        }
       }
     },
 
@@ -331,13 +313,6 @@ export default {
       // console.log('select_for_details: type: ' + type + ' id: ' + id)
       this.$store.commit("efm/setObjectForDetails", { type: type, id: id });
     },
-    reportIWasReady() {
-      this.$store.commit('efm/iwEndPointsReady', {
-        iwStartPoints: this.outgoingIW,
-        iwEndPoints: this.incomingIW
-      })
-      // console.log('i reported my IW as ready')
-    },
     reportDSasMounted() {
       if (this.objectType == 'ds') {
         this.$store.commit('efm/reportDSasMounted', this.objectID)
@@ -348,14 +323,6 @@ export default {
     // informing the store that the iw are ready to draw
     this.reportDSasMounted()
     // console.log('mounted ' + this.objectType + this.objectID )
-  },
-  updated() {
-    // // informing the store that the iw are ready to draw
-    // this.reportIWasReady()
-    // console.log('updated ' + this.objectType + this.objectID )
-  },
-  beforeUnmount() {
-    // console.log('abut to unmount ' + this.objectType + this.objectID)
   },
 };
 </script>

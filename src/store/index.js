@@ -1054,8 +1054,8 @@ const efmStore = {
         const whoIsWaitingForIW = getters.whoIsWaitingForIW;
         const theOtherEnd = newRelation;
         const submitData = {
-          from_ds_id: theOtherEnd.id,
-          to_ds_id: whoIsWaitingForIW.id,
+          from_ds_id: whoIsWaitingForIW.id,
+          to_ds_id: theOtherEnd.id,
           iw_type: "spatial",
         };
         let newIW = await dispatch(
@@ -1072,6 +1072,13 @@ const efmStore = {
         if (newIW) {
           commit("setWaitingForIW", null);
           commit("objectIsSelected", null);
+          return {
+            iw: newIW,
+            edit: {
+              objectType: 'iw',
+              editID: newIW.id
+            }
+          }
         }
       }
       // update all tree data, since doing it one by one is too complicated:

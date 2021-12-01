@@ -1,7 +1,7 @@
 <template>
     <!-- iw lines -->
     <svg
-      :style="'height:'+svgHeight+'; width:'+svgWidth+';'"
+      :style="'height:'+svgHeight+'px; width:'+svgWidth+'px;'"
       id="iwContainer"
       :key="updateIW"
     >
@@ -11,6 +11,7 @@
         :theIW="iw" 
         style="z-index: 1"
         @new:height="setHeight"
+        @new:width="setWidth"
     />
     </svg>
 </template>
@@ -22,8 +23,8 @@ export default {
   name: 'svgLineContainer',
   data() {
       return {
-          svgHeight: "100%",
-          svgWidth: "100%",
+          svgHeight: 100,
+          svgWidth: 100,
           iwToRender: [],
       }
   },
@@ -58,11 +59,16 @@ export default {
   },
   methods: {
       setWidth(newWidth) {
+        if (newWidth > this.svgWidth) {
           this.svgWidth = newWidth
+          this.$emit('new:width', this.svgWidth)
+        }
       },
       setHeight(newHeight) {
-          this.svgHeight = newHeight + 'px'
+        if (newHeight > this.svgHeight){
+          this.svgHeight = newHeight
           this.$emit('new:height', this.svgHeight)
+        }
       },
       checkForIWendpoints() {
       let iw_list = []
