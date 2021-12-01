@@ -74,10 +74,12 @@ export default {
         password: this.password,
       };
       const success = await this.$store.dispatch("login", user);
-      if (success & this.forwardURL) {
+      if (success && this.forwardURL) {
         console.log("forwarding to: " + this.forwardURL);
         this.$router.push(this.forwardURL);
-      } else this.$router.push({ name: "userProjects" });
+      } else if (success) { 
+        this.$router.push({ name: "userProjects" });
+      }
     },
   },
 };
