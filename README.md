@@ -1,4 +1,6 @@
-# sedfrontend
+# efmFrontend
+Copy from @sedlab at Chalmers
+
 Developed to work with SEDbackend [https://github.com/sed-group/sed-backend](https://github.com/sed-group/sed-backend)
 
 Aims to provide a starting point for frontend development inside the SED team
