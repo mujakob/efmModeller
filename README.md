@@ -3,12 +3,9 @@ Copy from @sedlab at Chalmers
 
 Developed to work with SEDbackend [https://github.com/sed-group/sed-backend](https://github.com/sed-group/sed-backend)
 
-Aims to provide a starting point for frontend development inside the SED team
+An interpretation of Enhanced Function-Means modelling according to [Müller et al. 2019](https://www.cambridge.org/core/services/aop-cambridge-core/content/view/DA70513CCF3B187DAF99FD22BC127724/S0890060419000271a.pdf/div-class-title-enhanced-function-means-modeling-supporting-design-space-exploration-div.pdf)
 
 version 0.2
-
-hosted @netlify as https://boring-nobel-325204.netlify.app/
-[![Netlify Status](https://api.netlify.com/api/v1/badges/41db0763-eeba-4823-a063-baa0af3599e9/deploy-status)](https://app.netlify.com/sites/boring-nobel-325204/deploys)
 
 ## adaptions before use:
 The backend is linked in src/settings.js
