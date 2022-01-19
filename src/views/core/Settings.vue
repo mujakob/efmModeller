@@ -22,7 +22,30 @@
     <v-btn
       @click="resetBackendUrl"
     > reset </v-btn>
-
+  
+    <v-card>
+      <v-card-title> Current Color Scheme </v-card-title>
+      <v-chip-group>
+        <v-chip :color="currentColorDS"> DS </v-chip>
+        <v-chip :color="currentColorFR"> FR </v-chip>
+        <v-chip :color="currentColorC"> constraint </v-chip>
+      </v-chip-group>
+      <v-divider />
+      <v-select
+       :items="colorOptions"
+       :item-text="'color_name'" 
+       :item-value="'color_name'"
+       v-model="selectedColorPattern"
+       />
+       <v-btn
+        @click="setColorPattern"
+        > select </v-btn>
+      <v-chip-group>
+        <v-chip :color="selectedColorDS"> DS </v-chip>
+        <v-chip :color="selectedColorFR"> FR </v-chip>
+        <v-chip :color="selectedColorC"> constraint </v-chip>
+      </v-chip-group>
+    </v-card>
       
     <v-list>
       <v-list-item> version: {{ version }} </v-list-item>
@@ -44,9 +67,15 @@ export default {
 
   data: () => ({
     localBackendUrl: null,
+    selectedColorPattern: 'blue-yellow',
   }),
   computed: {
-    ...mapGetters(["showEditor", "backendURL"]),
+    ...mapGetters([
+      "showEditor", 
+      "backendURL", 
+      "colorOptions",
+      "efmObjectColor",
+      ]),
 
     toggleEditor: {
       get: function() {
@@ -83,6 +112,31 @@ export default {
     githubLink() {
       return settings.githubLink;
     },
+
+    // COLORS
+    currentColorDS() {
+      return this.efmObjectColor('ds')
+    },
+    currentColorFR() {
+      return this.efmObjectColor('fr')
+    },
+    currentColorC() {
+      return this.efmObjectColor('c')
+    },
+    
+    selectedColorSet(){
+      let pattern = this.colorOptions.find(cs => cs.color_name == this.selectedColorPattern)
+      return pattern.colors
+    },
+    selectedColorDS() {
+      return this.selectedColorSet['ds']
+    },
+    selectedColorFR() {
+      return this.selectedColorSet['fr']
+    },
+    selectedColorC() {
+      return this.selectedColorSet['c']
+    },
   },
   methods: {
     saveBackendUrl() {
@@ -91,6 +145,9 @@ export default {
     },
     resetBackendUrl() {
       this.localBackendUrl = null
+    },
+    setColorPattern() {
+      this.$store.commit('setNewColorPattern', this.selectedColorPattern)
     }
   }
 };

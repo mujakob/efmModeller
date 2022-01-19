@@ -38,6 +38,47 @@ const settingsStore = {
     show_constraints: true,
     treeObjectSize: 1,        // 0 small, 1 medium, 2 large
     backend_URL: localStorage.getItem("backend_url") || "http://localhost:8000/api/",
+    color_options: [
+      {
+        color_name: 'blue-yellow',
+        colors: {
+          ds: "amber",
+          fr: "blue",
+          iw: "grey",
+          c: "deep-purple",
+          iw_spatial: "blue",
+          iw_energy: "yellow",
+          iw_material: "green",
+          iw_signal: "red",
+        },
+      },
+      {
+        color_name: 'black-white',
+        colors: {
+          ds: "grey darken-2",
+          fr: "blue-grey lighten-4",
+          iw: "white",
+          c: "grey",
+          iw_spatial: "grey",
+          iw_energy: "grey",
+          iw_material: "grey",
+          iw_signal: "grey",
+        },
+      },
+      {
+        color_name: 'green',
+        colors: {
+          ds: "green",
+          fr: "teal",
+          iw: "light-green",
+          c: "lime",
+          iw_spatial: "red",
+          iw_energy: "pink",
+          iw_material: "orange",
+          iw_signal: "yellow",
+        },
+      },
+    ]
   },
   getters: {
     efmObjectColor: (state) => (objType) => {
@@ -65,6 +106,9 @@ const settingsStore = {
     },
     showIW: (state) => {
       return state.show_iwLines
+    },
+    colorOptions: (state) => {
+      return state.color_options
     }
   },
   mutations: {
@@ -83,7 +127,14 @@ const settingsStore = {
     },
     setIWvisibility(state, showIW) {
       state.show_iwLines = showIW
-    }
+    },
+    setNewColorPattern(state, patternName) {
+      let pattern = state.color_options.find(cs => cs.color_name == patternName)
+      console.log(patternName, pattern)
+      if (pattern.colors) {
+        state.object_colors = pattern.colors
+      }
+    },
   },
   actions: {},
   modules: {},
@@ -1010,6 +1061,7 @@ const efmStore = {
       // can be used for parents, iw, .. depending on "who is waiting"
 
       const efmProjectUrl = getters.efmProjectApi;
+      let returnData = null
 
       if (getters.whoIsWaitingForParent) {
        // console.log("setting new parent via GUI");
@@ -1072,7 +1124,7 @@ const efmStore = {
         if (newIW) {
           commit("setWaitingForIW", null);
           commit("objectIsSelected", null);
-          return {
+          returnData = {
             iw: newIW,
             edit: {
               objectType: 'iw',
@@ -1082,7 +1134,8 @@ const efmStore = {
         }
       }
       // update all tree data, since doing it one by one is too complicated:
-      dispatch("updateTree");
+      await dispatch("updateTree");
+      return returnData
     },
   },
   modules: {},
