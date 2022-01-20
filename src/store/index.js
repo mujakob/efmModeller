@@ -163,9 +163,10 @@ const efmStore = {
     c: [], // list of all C of open tree
     iw: [], // list of all iw of open tree
     concepts: [], // list of instances of open tree
-    // dp: [], // list of all design parameters
-    // fp: [], // list of all function parameters
-    // bp: [], // list of all behaviour parameters
+    dp: [], // list of all design parameters
+    fp: [], // list of all function parameters
+    bp: [], // list of all behaviour parameters
+    pc: [], // list of all parameter constraints
     params: [],
     //////////////
     efmViewMenu: {
@@ -279,8 +280,11 @@ const efmStore = {
         optionalFields: {
           description: "description",
         },
-        children: null,
-        childrenString: '',
+        children: {
+          type: 'pc',
+          id_string: 'constraint_id',
+        },
+        childrenString: 'parameter constrained',
         parentType: "ds",
         parentID: "icb_id",
         parentString: "constrains",
@@ -379,30 +383,27 @@ const efmStore = {
         parentString: "is owned by",
         // newParentUrl: "ds/{id}/isb",
       },
-      pc: { // parameter constraints
+      pc: { // behaviourparameter
         string: "Parameter Constraint",
         objType: "pc",
         short: "PC",
-        // getURL: "pc/{id}",
-        postURL: "{p_type}/{p_id}/constrain",
-        putURL: "bp/{id}",
-        deleteURL: "bp/{id}",
+        getURL: "pc/{id}",
+        postURL: "{parent_type}/{parent_id}/new",
+        putURL: "pc/{id}",
+        deleteURL: "pc/{id}",
         requiredFields: {
-          name: "name", // API : fieldName
-          ds_id: "parentID",
         },
         optionalFields: {
-          value: "value",
-          equation: "equation",
+          upper_limit: "upper limit",
+          lower_limit: "lower_limit",
+          value_set: "value set",
+          fixed: "fixed value",
         },
-        children: {
-          type: "params",
-          list: 'parameter_id'
-        },
-        childrenString: 'constrains',
+        children: null,
+        childrenString: '',
         parentType: "c",
         parentID: "constraint_id",
-        parentString: "relates to",
+        parentString: "is owned by",
         // newParentUrl: "ds/{id}/isb",
       },
     },
@@ -642,7 +643,13 @@ const efmStore = {
       if (type == "ds") {
         // only useful for DS
         return state.c.filter((c) => c.icb_id == id);
-      } else {
+      } else if (['fp', 'dp', 'bp'].includes(type)) {
+        // in case of paramters
+        // simply return the object's own constraints property
+        let object = state[type].find(p => p.id == id)
+        console.log(object)
+        return object.constraints
+      } else{
         return [];
       }
     },
@@ -654,20 +661,16 @@ const efmStore = {
       let bp = []
       
       if (type == 'ds') {
-        dp = state.params.filter(p => p.ds_id == id)
-        bp = state.params.filter(p => p.ds_id == id)
+        dp = state.dp.filter(p => p.ds_id == id)
+        bp = state.bp.filter(p => p.ds_id == id)
       } else {
-        fp = state.params.filter(p => p.fr_id == id)
+        fp = state.fp.filter(p => p.fr_id == id)
       }
       return {
         bp: bp,
         dp: dp,
         fp: fp,
       }
-    },
-    efmParameterConstraints: (state) => (p_id) => {
-      // returns the constraints of parameter with p_id
-      return state.pc.filter(pc => pc.id == p_id)
     },
 
     // for GUI based selection of new parents ect
@@ -755,12 +758,22 @@ const efmStore = {
       state.concepts = concepts;
     },
     setAllParameters(state, parameters) {
-      // state.dp = parameters['design_parameters']
-      // state.fp = parameters['function_parameters']
-      // state.bp = parameters['behaviour_parameters']
-      state.params = parameters['design_parameters'].concat(parameters['function_parameters'], parameters['behaviour_parameters'])
-
+      state.dp = parameters['design_parameters']
+      state.fp = parameters['function_parameters']
+      state.bp = parameters['behaviour_parameters']
       state.pc = parameters['parameter_constraints']
+      // state.params = parameters['design_parameters'].concat(parameters['function_parameters'], parameters['behaviour_parameters'])
+
+      // state.pc = parameters['parameter_constraints']
+      for (let p of state.dp) {
+        p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      }
+      for (let p of state.fp) {
+        p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      }
+      for (let p of state.bp) {
+        p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      }
     },
     unsetTreeData(state) {
       state.treeInfo = null
