@@ -51,7 +51,7 @@ export default {
   computed: {},
   methods: {
     async login() {
-      this.$store.commit("clearErrors", this.$options.name);
+      this.$store.commit("clearMessages", this.$options.name);
       // let response = await utils.loginToBackend(this.username, this.password);
       if (!this.username) {
         this.$store.commit("registerError", {

@@ -33,6 +33,7 @@
     <editing-menu
       :objectID="objectID"
       :objectType="objectType"
+      :popupDirection="'bottom'"
       @newObject="newObject"
       @deleteObject="deleteObject"
     />
@@ -44,82 +45,172 @@
       {{ objData.description }}
     </v-card-text>
 
-    <v-card-text v-if="children">
+    <!-- parameters  -->
+    <v-card-text v-if="parameters.dp.length">
       <v-divider />
-      <p class="text-caption"> 
-        {{objInfo.childrenString}}
+      
+      <p class="text-caption"
+        @click="showDP = !showDP"
+        >
+        <v-icon v-if="showDP">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon>
+        design parameters: ({{parameters.dp.length}})
       </p>
-      <v-chip
-        v-for="c in children"
-        :key="c.id"
-        @click="setForDetails(c.objType, c.id)"
-        :color="objectColor(c.objType)"
-      >
-        {{c.name}}
-      </v-chip>
+      <div v-if="showDP">
+        <p 
+          v-for="p in parameters.dp" 
+          :key="p.id"
+          @click="setForDetails('dp', p.id)"
+        >
+          {{p.name}}: {{p.value}}
+        </p>
+      </div>
+    </v-card-text>
+    <!-- behaviour parameters  -->
+    <v-card-text v-if="parameters.bp.length">
+      <v-divider />
+      
+      <p class="text-caption"
+        @click="showBP = !showBP"
+        >
+        <v-icon v-if="showBP">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon>
+        behaviour parameters: ({{parameters.bp.length}})
+      </p>
+      <div v-if="showBP">
+        <p 
+          v-for="p in parameters.bp" 
+          :key="p.id"
+          @click="setForDetails('bp', p.id)"
+        >
+          {{p.name}}: {{p.value}}
+        </p>
+      </div>
+    </v-card-text>
+    <!-- function parameters  -->
+    <v-card-text v-if="parameters.fp.length">
+      <v-divider />
+      
+      <p class="text-caption"
+        @click="showFP = !showFP"
+        >
+        <v-icon v-if="showFP">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon>
+        function parameters: ({{parameters.fp.length}})
+      </p>
+      <div v-if="showFP">
+        <p 
+          v-for="p in parameters.fp" 
+          :key="p.id"
+          @click="setForDetails('fp', p.id)"
+        >
+          {{p.name}}: {{p.value}}
+        </p>
+      </div>
+
+    </v-card-text>
+
+    <!-- children -->
+    <v-card-text v-if="children.length">
+      <v-divider />
+      <p class="text-caption"
+        @click="showChildren = !showChildren"
+        >
+        <v-icon v-if="showChildren">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon> 
+        {{objInfo.childrenString}} ({{children.length}})
+      </p>
+      <div v-if="showChildren">
+        <v-chip
+          v-for="c in children"
+          :key="c.id"
+          @click="setForDetails(c.objType, c.id)"
+          :color="objectColor(c.objType)"
+        >
+          {{c.name}}
+        </v-chip>
+      </div>
     </v-card-text>
 
 
     <!-- IW (in case DS) -->
     <v-card-text v-if="incomingIW.length">
       <v-divider />
-      <p class="text-caption"> 
-        incoming interactions 
-      </p>
-
-      <v-chip 
-        v-for="iw in incomingIW" 
-        :key="iw.id"
-        :color="objectColor('iw')"
-        @click="setForDetails('iw', iw.id)"
-      >
-        <v-avatar
-          :class="[objectColor('iw'), 'darken-4']"
-          left
+      <p class="text-caption"
+        @click="showIWin = !showIWin"
         >
-          <v-icon color="white"> mdi-chevron-left </v-icon>
-        </v-avatar>
-        iw {{ iw.fromName }}; {{ iw.iwType }}
-      </v-chip>
+        <v-icon v-if="showIWin">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon> 
+        incoming interactions ({{incomingIW.length}})
+      </p>
+      <div v-if="showIWin">
+        <v-chip 
+          v-for="iw in incomingIW" 
+          :key="iw.id"
+          :color="objectColor('iw')"
+          @click="setForDetails('iw', iw.id)"
+        >
+          <v-avatar
+            :class="[objectColor('iw'), 'darken-4']"
+            left
+          >
+            <v-icon color="white"> mdi-chevron-left </v-icon>
+          </v-avatar>
+          iw {{ iw.fromName }}; {{ iw.iwType }}
+        </v-chip>
+      </div>
     </v-card-text>
 
     <v-card-text v-if="outgoingIW.length">
       <v-divider />
-      <p class="text-caption">
-        outgoing interactions 
-      </p>
-      <v-chip
-        v-for="iw in outgoingIW" 
-        :key="iw.id"
-        @click="setForDetails('iw', iw.id)"
-        :color="objectColor('iw')"
-      >
-        <v-avatar
-          :class="[objectColor('iw'), 'darken-4']"
-          left
+      <p class="text-caption"
+        @click="showIWout = !showIWout"
         >
-          <v-icon color="white"> mdi-chevron-right </v-icon>
-        </v-avatar>
-        iw {{ iw.toName }}; {{ iw.iwType }}
-      </v-chip>
+        <v-icon v-if="showIWout">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon>
+        outgoing interactions ({{outgoingIW.length}})
+      </p>
+      <div v-if="showIWout">
+        <v-chip
+          v-for="iw in outgoingIW" 
+          :key="iw.id"
+          @click="setForDetails('iw', iw.id)"
+          :color="objectColor('iw')"
+        >
+          <v-avatar
+            :class="[objectColor('iw'), 'darken-4']"
+            left
+          >
+            <v-icon color="white"> mdi-chevron-right </v-icon>
+          </v-avatar>
+          iw {{ iw.toName }}; {{ iw.iwType }}
+        </v-chip>
+      </div>
     </v-card-text>
-
+    
+    <!-- constraints  -->
     <v-card-text  v-if="constraints.length">
       <v-divider />
       <!-- constraints (in case DS) -->
-      <p class="text-caption"> 
-        is constrained by 
+      <p class="text-caption"
+        @click="showConstraints = !showConstraints"
+        >
+        <v-icon v-if="showConstraints">mdi-chevron-up</v-icon>
+        <v-icon v-else>mdi-chevron-down</v-icon> 
+        is constrained by ({{constraints.length}})
       </p>
-      <v-chip
-        class="ma-2"
-        :color="efmObjectColor('c')"
-        text-color="white"
-        v-for="c in constraints"
-        :key="c.id"
-        @click="setForDetails('c', c.id)"
-      >
-        {{ c.name }}
-      </v-chip>
+      <div v-if="showConstraints">
+        <v-chip
+          class="ma-2"
+          :color="efmObjectColor('c')"
+          text-color="white"
+          v-for="c in constraints"
+          :key="c.id"
+          @click="setForDetails('c', c.id)"
+        >
+          {{ c.name }}
+        </v-chip>
+      </div>
     </v-card-text>
 
 
@@ -158,6 +249,15 @@ export default {
       newObjectParentID: null,
       newObjectType: null,
 
+      // show/hide for details
+      showBP: false,
+      showDP: false,
+      showFP: false,
+      showConstraints: false,
+      showIWin: false,
+      showIWout: false,
+      showChildren: false,
+
       // for deleteObject popup
       toDeleteType: null,
       toDeleteID: null,
@@ -174,6 +274,7 @@ export default {
       "incomingIWofDS",
       "outgoingIWofDS",
       "efmObjectConstraints",
+      "efmParametersOfObject",
     ]),
     ...mapGetters(["efmObjectColor"]),
     objectType() {
@@ -202,6 +303,9 @@ export default {
         childObjects.push(cObject)
       }
       return childObjects        
+    },
+    parameters() {
+      return this.efmParametersOfObject(this.objectType, this.objectID)
     },
 
     // IW for DS:
@@ -277,3 +381,14 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.text-caption {
+  margin-bottom: 5px !important;
+}
+
+.v-card__text {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+</style>

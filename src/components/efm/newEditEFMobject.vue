@@ -4,7 +4,7 @@
       <v-card-title>
         {{ titleText }}
       </v-card-title>
-
+        <!-- NAME -->
       <v-text-field
         v-model="newObject.name"
         label="name"
@@ -12,14 +12,28 @@
         v-if="showField('name')"
         ref="nameField"
       />
-
+        <!-- DESCRIPTION -->
       <v-text-field 
         v-model="newObject.description"
         label="Description" 
         v-if="showField('description')"
         ref="descriptionField"
       />
-
+        <!-- EQUATION (param)-->
+      <v-text-field 
+        v-model="newObject.equation"
+        label="Equation" 
+        v-if="showField('equation')"
+        ref="equationField"
+      />
+        <!-- VALUE (param) -->
+      <v-text-field 
+        v-model="newObject.value"
+        label="Value" 
+        v-if="showField('value')"
+        ref="valueField"
+      />
+        <!-- IW TYPE (iw) -->
       <v-combobox
         v-model="newObject.iw_type"
         v-if="showField('iw_type')"

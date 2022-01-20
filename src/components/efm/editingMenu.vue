@@ -3,7 +3,7 @@
     <!-- plus button speed dial -->
     <v-speed-dial
       v-model="fab"
-      direction="top"
+      :direction="popupDirection"
       open-on-hover
       class="mr-3"
       v-if="addButtonsObjectSpecific.length > 1"
@@ -65,7 +65,7 @@
     <!-- speed dial in case "small" -->
     <v-speed-dial
       v-model="fabEdit"
-      direction="top"
+      :direction="popupDirection"
       open-on-hover
       class="mr-3"
       v-if="smallEditor"
@@ -148,7 +148,7 @@ export default {
           icon: "mdi-pencil",
           link: null,
           function: "buttonEditSelf",
-          forElements: ["ds", "c", "iw", "fr"],
+          forElements: ["ds", "c", "iw", "fr", "dp", "fp", "bp",],
           disabled: false,
         },
         {
@@ -156,7 +156,7 @@ export default {
           icon: "mdi-delete",
           link: null,
           function: "buttonDeleteSelf",
-          forElements: ["ds", "iw", "c", "fr"],
+          forElements: ["ds", "iw", "c", "fr", "dp", "fp", "bp",],
           disabled: false,
         },
       ],
@@ -193,6 +193,30 @@ export default {
           disabled: false,
           color: "c",
         },
+        {
+          text: "Add new design parameter",
+          buttonText: "DP",
+          function: "buttonNewDP",
+          forElements: ["ds"],
+          disabled: false,
+          color: "ds", // fetches from settings/efmObjectColor
+        },
+        {
+          text: "Add new behaviour parameter",
+          buttonText: "BP",
+          function: "buttonNewBP",
+          forElements: ["ds"],
+          disabled: false,
+          color: "ds", // fetches from settings/efmObjectColor
+        },
+        {
+          text: "Add new function parameter",
+          buttonText: "FP",
+          function: "buttonNewFP",
+          forElements: ["fr"],
+          disabled: false,
+          color: "fr", // fetches from settings/efmObjectColor
+        },
       ],
     };
   },
@@ -209,6 +233,11 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+    popupDirection: { // decides the direction of the fab menues
+      type: String,
+      required: false,
+      default: 'top'
     }
   },
   computed: {
@@ -284,6 +313,25 @@ export default {
         parentID: this.objectID,
       });
     },
+    buttonNewBP() {
+      this.$emit("newObject", {
+        objectType: "bp",
+        parentID: this.objectID,
+      });
+    },
+    buttonNewFP() {
+      this.$emit("newObject", {
+        objectType: "fp",
+        parentID: this.objectID,
+      });
+    },
+    buttonNewDP() {
+      this.$emit("newObject", {
+        objectType: "dp",
+        parentID: this.objectID,
+      });
+    },
+
     buttonSelectNewParent() {
       // first we set the objects to select in the gui to possible parents
       this.$store.commit(

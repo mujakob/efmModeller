@@ -163,6 +163,10 @@ const efmStore = {
     c: [], // list of all C of open tree
     iw: [], // list of all iw of open tree
     concepts: [], // list of instances of open tree
+    // dp: [], // list of all design parameters
+    // fp: [], // list of all function parameters
+    // bp: [], // list of all behaviour parameters
+    params: [],
     //////////////
     efmViewMenu: {
       showConceptsPane: false,
@@ -305,6 +309,102 @@ const efmStore = {
           id_string: 'tree_id'
         },
       },
+      // PARAMETERS:
+      dp: { // designparameter
+        string: "Design Parameter",
+        objType: "dp",
+        short: "DP",
+        getURL: "dp/{id}",
+        postURL: "dp/new",
+        putURL: "dp/{id}",
+        deleteURL: "dp/{id}",
+        requiredFields: {
+          name: "name", // API : fieldName
+          ds_id: "parentID",
+        },
+        optionalFields: {
+          value: "value",
+          equation: "equation",
+        },
+        children: null,
+        childrenString: '',
+        parentType: "ds",
+        parentID: "ds_id",
+        parentString: "is owned by",
+        // newParentUrl: "ds/{id}/isb",
+      },
+      fp: { // functionparameter
+        string: "Function Parameter",
+        objType: "fp",
+        short: "FP",
+        getURL: "fp/{id}",
+        postURL: "fp/new",
+        putURL: "fp/{id}",
+        deleteURL: "fp/{id}",
+        requiredFields: {
+          name: "name", // API : fieldName
+          fr_id: "parentID",
+        },
+        optionalFields: {
+          value: "value",
+          equation: "equation",
+        },
+        children: null,
+        childrenString: '',
+        parentType: "fr",
+        parentID: "fr_id",
+        parentString: "is owned by",
+        // newParentUrl: "ds/{id}/isb",
+      },
+      bp: { // behaviourparameter
+        string: "Behaviour Parameter",
+        objType: "bp",
+        short: "BP",
+        getURL: "bp/{id}",
+        postURL: "bp/new",
+        putURL: "bp/{id}",
+        deleteURL: "bp/{id}",
+        requiredFields: {
+          name: "name", // API : fieldName
+          ds_id: "parentID",
+        },
+        optionalFields: {
+          value: "value",
+          equation: "equation",
+        },
+        children: null,
+        childrenString: '',
+        parentType: "ds",
+        parentID: "ds_id",
+        parentString: "is owned by",
+        // newParentUrl: "ds/{id}/isb",
+      },
+      pc: { // parameter constraints
+        string: "Parameter Constraint",
+        objType: "pc",
+        short: "PC",
+        // getURL: "pc/{id}",
+        postURL: "{p_type}/{p_id}/constrain",
+        putURL: "bp/{id}",
+        deleteURL: "bp/{id}",
+        requiredFields: {
+          name: "name", // API : fieldName
+          ds_id: "parentID",
+        },
+        optionalFields: {
+          value: "value",
+          equation: "equation",
+        },
+        children: {
+          type: "params",
+          list: 'parameter_id'
+        },
+        childrenString: 'constrains',
+        parentType: "c",
+        parentID: "constraint_id",
+        parentString: "relates to",
+        // newParentUrl: "ds/{id}/isb",
+      },
     },
     // the following two are for GUI selection of new parents etc
     objectsToSelect: [], // list of efm objects
@@ -379,6 +479,12 @@ const efmStore = {
       // returns list with type, id of each childobject of an efm object
       // needed for state consistency checks with the backend
       // console.log('getting all children of ' + type + id)
+
+      // either returns all objects of children.type in children.list
+      // or finds objects of children.type with id in their children.id_string field
+
+      // returns empty list if children = null
+
       const objInfo = getters.EFMobjectInfo(type, id);
       const theObject = getters.getEFMobjectByID(type, id);
 
@@ -540,6 +646,29 @@ const efmStore = {
         return [];
       }
     },
+    efmParametersOfObject: (state) => (type, id) => {
+      // returns array {dp, bp, fp}
+
+      let fp = []
+      let dp = []
+      let bp = []
+      
+      if (type == 'ds') {
+        dp = state.params.filter(p => p.ds_id == id)
+        bp = state.params.filter(p => p.ds_id == id)
+      } else {
+        fp = state.params.filter(p => p.fr_id == id)
+      }
+      return {
+        bp: bp,
+        dp: dp,
+        fp: fp,
+      }
+    },
+    efmParameterConstraints: (state) => (p_id) => {
+      // returns the constraints of parameter with p_id
+      return state.pc.filter(pc => pc.id == p_id)
+    },
 
     // for GUI based selection of new parents ect
     objectIsToBeSelected: (state, getters) => (type, id) => {
@@ -624,6 +753,14 @@ const efmStore = {
     },
     setAllConcepts(state, concepts) {
       state.concepts = concepts;
+    },
+    setAllParameters(state, parameters) {
+      // state.dp = parameters['design_parameters']
+      // state.fp = parameters['function_parameters']
+      // state.bp = parameters['behaviour_parameters']
+      state.params = parameters['design_parameters'].concat(parameters['function_parameters'], parameters['behaviour_parameters'])
+
+      state.pc = parameters['parameter_constraints']
     },
     unsetTreeData(state) {
       state.treeInfo = null
@@ -843,12 +980,22 @@ const efmStore = {
         },
         { root: true }
       );
+
+      let theParameters = await dispatch(
+        "apiCall",
+        {
+          url: efmApi + treeID + "/parameters",
+          method: "GET",
+        },
+        { root: true }
+      );
       // in case error, so it's not "undefined" but empty array
       if (!theTree) {
         theTree = [];
       } else {
        // console.log(theTree);
         commit("setAllEfmObjects", theTree);
+        commit("setAllParameters", theParameters);
         commit("goodNews", 'Loaded all elements of "' + theTree.name + '".', {
           root: true,
         });
@@ -1017,40 +1164,40 @@ const efmStore = {
         return deletion;
       }
     },
-    async updateEFMobject({ getters, commit, dispatch }, { type, id }) {
-      // fetches the info of a EFM object and updates state
-      // deletes if 404
-      // recursively updates children
-      // mainly used in edit and delete EFM object actions for chidlren and parents of edited/deleted objects
+    // async updateEFMobject({ getters, commit, dispatch }, { type, id }) {
+    //   // fetches the info of a EFM object and updates state
+    //   // deletes if 404
+    //   // recursively updates children
+    //   // mainly used in edit and delete EFM object actions for chidlren and parents of edited/deleted objects
 
-      const objType = getters.EFMobjectInfo(type, id);
-      const efmProjectUrl = getters.efmProjectApi;
+    //   const objType = getters.EFMobjectInfo(type, id);
+    //   const efmProjectUrl = getters.efmProjectApi;
 
-      // let theObjectInState = getters.getEFMobjectByID(type, id)
+    //   // let theObjectInState = getters.getEFMobjectByID(type, id)
 
-      let theObjectFromDB = await dispatch(
-        "apiCall",
-        {
-          url: efmProjectUrl + objType.getURL,
-          method: "GET",
-        },
-        { root: true }
-      );
+    //   let theObjectFromDB = await dispatch(
+    //     "apiCall",
+    //     {
+    //       url: efmProjectUrl + objType.getURL,
+    //       method: "GET",
+    //     },
+    //     { root: true }
+    //   );
 
-      if (theObjectFromDB === 404) {
-        // type sensitive check needed here!
-        // if 404 (not found, i.e. deleted) we remove from state:
-        commit(objType.deleteMutation, id);
-        // and we need to check all the children too, since they probably need to be removed as well
-        for (let child of getters.efmObjectChildren(type, id)) {
-          // child should be [type, id]
-          dispatch("updateEFMobject", { type: child[0], id: child[1] });
-        }
-      } else if (theObjectFromDB) {
-        // if we get a return we just update it in state:
-        commit(objType.putMutation, theObjectFromDB);
-      }
-    },
+    //   if (theObjectFromDB === 404) {
+    //     // type sensitive check needed here!
+    //     // if 404 (not found, i.e. deleted) we remove from state:
+    //     commit(objType.deleteMutation, id);
+    //     // and we need to check all the children too, since they probably need to be removed as well
+    //     for (let child of getters.efmObjectChildren(type, id)) {
+    //       // child should be [type, id]
+    //       dispatch("updateEFMobject", { type: child[0], id: child[1] });
+    //     }
+    //   } else if (theObjectFromDB) {
+    //     // if we get a return we just update it in state:
+    //     commit(objType.putMutation, theObjectFromDB);
+    //   }
+    // },
 
     async setNewRelationFromGui(
       { getters, commit, dispatch },

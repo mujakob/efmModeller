@@ -33,7 +33,7 @@ export default {
   },
   methods: {
     clearAllErrors() {
-      this.$store.commit("clearMessages", null);
+      this.$store.commit("clearAllMessages", null);
     },
 
   },
