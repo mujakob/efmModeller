@@ -281,8 +281,8 @@ const efmStore = {
           description: "description",
         },
         children: {
-          type: 'pc',
-          id_string: 'constraint_id',
+          type: ['dp', 'bp', 'fp'],
+          list: 'parameter_id',
         },
         childrenString: 'parameter constrained',
         parentType: "ds",
@@ -330,7 +330,10 @@ const efmStore = {
           value: "value",
           equation: "equation",
         },
-        children: null,
+        children: {
+          type: 'c',
+          id_string: 'paramter_id'
+        },
         childrenString: '',
         parentType: "ds",
         parentID: "ds_id",
@@ -353,7 +356,10 @@ const efmStore = {
           value: "value",
           equation: "equation",
         },
-        children: null,
+        children: {
+          type: 'c',
+          id_string: 'paramter_id'
+        },
         childrenString: '',
         parentType: "fr",
         parentID: "fr_id",
@@ -376,7 +382,10 @@ const efmStore = {
           value: "value",
           equation: "equation",
         },
-        children: null,
+        children: {
+          type: 'c',
+          id_string: 'parameter_id',
+        },
         childrenString: '',
         parentType: "ds",
         parentID: "ds_id",
@@ -452,7 +461,7 @@ const efmStore = {
 
     ////////////////////////////////////////
     EFMobjectInfo:
-      (state) =>
+      (state, getters) =>
       (type, id = null) => {
         // returns info about EFM Object
         // console.log('EFM OBJECT INFO ')
@@ -467,7 +476,24 @@ const efmStore = {
               // console.log(objInfo[i])
             }
           }
+          
+          // try to get object info for further replacements
+          try {
+            const object_data = getters.getEFMobjectByID(type, id)
+            for (let i in objInfo) {
+              if (typeof objInfo[i] == "string") {
+                // replace parent_type
+                objInfo[i] = objInfo[i].replace("{parent_type}", object_data[objInfo[parentType]]);
+                // replace parent_id
+                objInfo[i] = objInfo[i].replace("{parent_id}", object_data[objInfo[parentID]]);
+                // console.log(objInfo[i])
+              }
+            }
+          } catch (error){
+            console.warn('failed to fetch additional object info for ' + type + id )
+          }
         }
+
         return objInfo;
       },
     getEFMobjectByID: (state) => (type, id) => {
@@ -484,6 +510,8 @@ const efmStore = {
       // either returns all objects of children.type in children.list
       // or finds objects of children.type with id in their children.id_string field
 
+      // children.type can be a list (such as for constraints), which results in a special case here... -.-
+
       // returns empty list if children = null
 
       const objInfo = getters.EFMobjectInfo(type, id);
@@ -494,28 +522,38 @@ const efmStore = {
       // for (let c of objType.children) {
       if (objInfo.children) {
         const c = objInfo.children
-        if (c.id_string) {
-          // case: c = {type, id_string}
-          // i.e. children need to be found by their parent_id
-          let childObjectList = state[c.type].filter(child => child[c.id_string] == id)
-          for (let cObject of childObjectList) {
-            allChildrenList.push({ type: c.type, id: cObject.id })
-          }
-        } else if (Array.isArray(theObject[c.list])) {
-          // c is like {type: 'ds', list: 'is_solved_by_id'}
-          // here we iterate through the objects children list
-          for (let cc of theObject[c.list]) {
-            // c.list contains IDs when backend is set correctly
 
-          // console.log('found child ' + c.type + cc + ' of ' + type + id)
-            allChildrenList.push({ type: c.type, id: cc });
-          }
-        } else {
-          // in case that c.list is no list but just a single value, e.g. top_level_ds_id
-        // console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
-          allChildrenList.push({ type: c.type, id: theObject[c.list] });
+        // child-finding below iterates thorugh a list, hence, if c.type is not list (i.e. single value), we have to make it one!
+
+        let children_type_list = c.type
+         if (!Array.isArray(c.type)) {
+          children_type_list = [c.type]
         }
-      }
+
+        for (let c_type of children_type_list) {
+          if (c.id_string) {
+            // case: c = {type, id_string}
+            // i.e. children need to be found by their parent_id
+            let childObjectList = state[c_type].filter(child => child[c.id_string] == id)
+            for (let cObject of childObjectList) {
+              allChildrenList.push({ type: c_type, id: cObject.id })
+            }
+          } else if (Array.isArray(theObject[c.list])) {
+            // c is like {type: 'ds', list: 'is_solved_by_id'}
+            // here we iterate through the objects children list
+            for (let cc of theObject[c.list]) {
+              // c.list contains IDs when backend is set correctly
+
+            // console.log('found child ' + c.type + cc + ' of ' + type + id)
+              allChildrenList.push({ type: c_type, id: cc });
+            }
+            } else {
+              // in case that c.list is no list but just a single value, e.g. top_level_ds_id
+            // console.log('found child ' + c.type + " " + theObject[c.list] + ' of ' + type + id)
+              allChildrenList.push({ type: c_type, id: theObject[c.list] });
+            }
+          }
+        }
       return allChildrenList;
     },
     efmObjectAllChildrenRecursive: (state, getters) => (type, id) => {
@@ -643,12 +681,12 @@ const efmStore = {
       if (type == "ds") {
         // only useful for DS
         return state.c.filter((c) => c.icb_id == id);
-      } else if (['fp', 'dp', 'bp'].includes(type)) {
-        // in case of paramters
-        // simply return the object's own constraints property
-        let object = state[type].find(p => p.id == id)
-        console.log(object)
-        return object.constraints
+      // } else if (['fp', 'dp', 'bp'].includes(type)) {
+      //   // in case of paramters
+      //   // simply return the object's own constraints property
+      //   let object = state[type].find(p => p.id == id)
+      //   console.log(object)
+      //   return object.constraints
       } else{
         return [];
       }
@@ -764,16 +802,22 @@ const efmStore = {
       state.pc = parameters['parameter_constraints']
       // state.params = parameters['design_parameters'].concat(parameters['function_parameters'], parameters['behaviour_parameters'])
 
-      // state.pc = parameters['parameter_constraints']
-      for (let p of state.dp) {
-        p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      // writing parameter constraints into constraints
+      for (let pc of parameters['parameter_constraints']) {
+        let constraint = state.c.find(c => c.id == pc.constraint_id)
+        constraint = Object.assign(constraint, pc)
       }
-      for (let p of state.fp) {
-        p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
-      }
-      for (let p of state.bp) {
-        p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
-      }
+
+      // // state.pc = parameters['parameter_constraints']
+      // for (let p of state.dp) {
+      //   p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      // }
+      // for (let p of state.fp) {
+      //   p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      // }
+      // for (let p of state.bp) {
+      //   p.constraints = parameters['parameter_constraints'].filter(pc => pc.parameter_id == p.id)
+      // }
     },
     unsetTreeData(state) {
       state.treeInfo = null
